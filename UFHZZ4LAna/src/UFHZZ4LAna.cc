@@ -537,6 +537,8 @@ private:
 
   double nEvWith1FSRZ, nEvWith1FSRZ_4e, nEvWith1FSRZ_4mu, nEvWith1FSRZ_2e2mu;
   double nEvWith2FSRZ, nEvWith2FSRZ_4e, nEvWith2FSRZ_4mu, nEvWith2FSRZ_2e2mu;
+  
+  double nEvFSRPtLt4, nEvFSRPtGt4dR0p5MatchHadISO, nEvFSRPtGt4dR0p07Match;
 
 
 
@@ -785,6 +787,10 @@ UFHZZ4LAna::UFHZZ4LAna(const edm::ParameterSet& iConfig) :
 
   nEvWith1FSRZ = 0; nEvWith1FSRZ_4e = 0; nEvWith1FSRZ_4mu = 0; nEvWith1FSRZ_2e2mu = 0;
   nEvWith2FSRZ = 0; nEvWith2FSRZ_4e = 0; nEvWith2FSRZ_4mu = 0; nEvWith2FSRZ_2e2mu = 0;
+  
+  nEvFSRPtLt4 = 0;
+  nEvFSRPtGt4dR0p5MatchHadISO = 0;
+  nEvFSRPtGt4dR0p07Match = 0;
 
   nEvBeforeZCuts_4mu = 0;
   nEvAfterM4lCut_4mu = 0;
@@ -2184,6 +2190,10 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	<< nEvWith1FSRZ << "/ " << nEvWith1FSRZ_4e << "/ " << nEvWith1FSRZ_4mu << "/ " << nEvWith1FSRZ_2e2mu << endl
 	<< "nEvWith2FSR: " << endl
         << nEvWith2FSRZ<< "/ " << nEvWith2FSRZ_4e << "/ " << nEvWith2FSRZ_4mu << "/ " << nEvWith2FSRZ_2e2mu <<endl;
+        
+  cout << "nEvFSRPtLt4: " << nEvFSRPtLt4  
+  << "nEvFSRPtGt4dR0p5MatchHadISO = " << nEvFSRPtGt4dR0p5MatchHadISO
+  << "nEvFSRPtGt4dR0p07Match = " << nEvFSRPtGt4dR0p07Match << endl;
 
 
 
@@ -5841,127 +5851,138 @@ bool UFHZZ4LAna::findZ(std::vector<pat::PFParticle> photons, std::vector<double>
   double photIsoCut = 1.0;
   bool foundZ = false;
   double isoVetoMuons = 0.00;
-
+  
+  int FSRType=-999;
+  // 1: nEvFSRPtLt4 
+  // 2: nEvFSRPtGt4dR0p5MatchHadISO 
+  // 3: nEvFSRPtGt4dR0p07Match
+  
   if( !photons.empty() && photons.size() > 0 && doFsrRecovery)
+  {
+    for(unsigned int i = 0; i < photons.size(); i++)
     {
-      for(unsigned int i = 0; i < photons.size(); i++)
-	{
-          if( taken1 == (int)i ) continue;
-	  //pt, eta checks
-	  if( photons[i].pt() < 4 ) continue;
-	  if( photons[i].eta() > 2.4 ) continue;
-	  if( (photons[i].userFloat("fsrPhotonPFIsoChHad03pt02")+photons[i].userFloat("fsrPhotonPFIsoNHad03")
-	       +photons[i].userFloat("fsrPhotonPFIsoPhoton03")
-	       +photons[i].userFloat("fsrPhotonPFIsoChHadPU03pt02"))/photons[i].pt() > photIsoCut) continue;
-	  //calc both deltaRs
-	  deltaR1 = deltaR(muon1.eta(),muon1.phi(),photons[i].eta(),photons[i].phi());
-	  deltaR2 = deltaR(muon2.eta(),muon2.phi(),photons[i].eta(),photons[i].phi());
-	  //associate with closest lepton
-	  if( deltaR1 < deltaR2 ){ assocMuonTmp = 1; smallestDeltaR = deltaR1;}
-	  else{ assocMuonTmp = 2; smallestDeltaR = deltaR2;}
-	  if( smallestDeltaR > 0.5 || smallestDeltaR > deltaRVec[i] ) continue;
-	  if( photons[i].pt() < photHighestPt ) continue;
-	  //calc P vectors
-	  mllgam = muon1.p4()+muon2.p4()+photons[i].p4();
-	  mll = muon1.p4()+muon2.p4();
-	  //check inv mass
-	  if( mllgam.M() < 4 || mllgam.M() > 100) continue;
-	  massDiffPhot = fabs(mllgam.M() - Zmass);
-	  massDiffNoPhot = fabs(mll.M() - Zmass);
-
-	  //if its smaller with phot, keep phot
-	  if( massDiffPhot < massDiffNoPhot )
-	    {
-	      //check iso cone
-	      if( deltaR1 < coneSize && deltaR1 > isoVetoMuons && deltaR1 > 1e-06){muon1Iso = helper.pfIsoFSR(muon1,muonRho,photons[i].pt());}
-	      else{muon1Iso = helper.pfIso(muon1,muonRho);}
-	      if( deltaR2 < coneSize && deltaR2 > isoVetoMuons && deltaR2 > 1e-06){muon2Iso = helper.pfIsoFSR(muon2,muonRho,photons[i].pt());}
-	      else{muon2Iso = helper.pfIso(muon2,muonRho);}
-
+      if( taken1 == (int)i ) continue;
+      //pt, eta checks
+      if( photons[i].pt() < 4 ) continue;
+      if( photons[i].eta() > 2.4 ) continue;
+      if( (photons[i].userFloat("fsrPhotonPFIsoChHad03pt02")+photons[i].userFloat("fsrPhotonPFIsoNHad03")
+         +photons[i].userFloat("fsrPhotonPFIsoPhoton03")
+        +photons[i].userFloat("fsrPhotonPFIsoChHadPU03pt02"))/photons[i].pt() > photIsoCut) continue;
+      //calc both deltaRs
+      deltaR1 = deltaR(muon1.eta(),muon1.phi(),photons[i].eta(),photons[i].phi());
+      deltaR2 = deltaR(muon2.eta(),muon2.phi(),photons[i].eta(),photons[i].phi());
+      //associate with closest lepton
+      if( deltaR1 < deltaR2 ){ assocMuonTmp = 1; smallestDeltaR = deltaR1;}
+      else{ assocMuonTmp = 2; smallestDeltaR = deltaR2;}
+      if( smallestDeltaR > 0.5 || smallestDeltaR > deltaRVec[i] ) continue;
+      if( photons[i].pt() < photHighestPt ) continue;
+      //calc P vectors
+      mllgam = muon1.p4()+muon2.p4()+photons[i].p4();
+      mll = muon1.p4()+muon2.p4();
+      //check inv mass
+      if( mllgam.M() < 4 || mllgam.M() > 100) continue;
+      massDiffPhot = fabs(mllgam.M() - Zmass);
+      massDiffNoPhot = fabs(mll.M() - Zmass);
+      
+      //if its smaller with phot, keep phot
+      if( massDiffPhot < massDiffNoPhot )
+      {
+        //check iso cone
+        if( deltaR1 < coneSize && deltaR1 > isoVetoMuons && deltaR1 > 1e-06)
+        {muon1Iso = helper.pfIsoFSR(muon1,muonRho,photons[i].pt());}
+        else
+        {muon1Iso = helper.pfIso(muon1,muonRho);}
+	      if( deltaR2 < coneSize && deltaR2 > isoVetoMuons && deltaR2 > 1e-06)
+	      {muon2Iso = helper.pfIsoFSR(muon2,muonRho,photons[i].pt());}
+	      else
+	      {muon2Iso = helper.pfIso(muon2,muonRho);}
 	      if(muon1Iso < isoCut && muon2Iso < isoCut)
-		{
-		  foundPhot = true;
-		  photHighestPt = photons[i].pt();
-		  photVec = photons[i].p4();
-		  ZVec = mllgam;
-		  assocMuon = assocMuonTmp;
-		  taken2 = (int)i;
-		  foundZ = true;
-		}
+	      {
+	        foundPhot = true;
+	        photHighestPt = photons[i].pt();
+	        photVec = photons[i].p4();
+	        ZVec = mllgam;
+	        assocMuon = assocMuonTmp;
+	        taken2 = (int)i;
+	        foundZ = true;
+	        FSRType = 2;
+	      }
 	    }
-	}
-      if(!foundPhot)
-	{
-	  bool useDR = false, usePT = false;
-	  for(unsigned int i = 0; i < photons.size(); i++)
+	  }
+    if(!foundPhot)
+	  {
+	    bool useDR = false, usePT = false;
+	    for(unsigned int i = 0; i < photons.size(); i++)
 	    {
-	      if( taken1 == (int)i ) continue;
-	      //pt, eta checks
-	      if( photons[i].pt() < 2 ) continue;
-	      if( photons[i].eta() > 2.4 ) continue;
-	      if( photons[i].pt() < 4 ) useDR = true;
-	      if( photons[i].pt() > 4 ) usePT = true;
-	      if( usePT && photons[i].pt() < photHighestPt) continue;
-	      //calc both deltaRs
-	      deltaR1 = deltaR(muon1.eta(),muon1.phi(),photons[i].eta(),photons[i].phi());
-	      deltaR2 = deltaR(muon2.eta(),muon2.phi(),photons[i].eta(),photons[i].phi());
+        if( taken1 == (int)i ) continue;
+        //pt, eta checks
+        if( photons[i].pt() < 2 ) continue;
+        if( photons[i].eta() > 2.4 ) continue;
+        if( photons[i].pt() < 4 ) useDR = true;
+        if( photons[i].pt() > 4 ) usePT = true;
+        if( usePT && photons[i].pt() < photHighestPt) continue;
+        //calc both deltaRs
+        deltaR1 = deltaR(muon1.eta(),muon1.phi(),photons[i].eta(),photons[i].phi());
+        deltaR2 = deltaR(muon2.eta(),muon2.phi(),photons[i].eta(),photons[i].phi());
 	      //associate with closest lepton
 	      if( deltaR1 < deltaR2 ){ assocMuonTmp = 1; smallestDeltaR = deltaR1;}
 	      else{ assocMuonTmp = 2; smallestDeltaR = deltaR2;}
-	      if( smallestDeltaR > 0.07  || smallestDeltaR > deltaRVec[i] ) continue;
-	      if( smallestDeltaR > totalSmallestDeltaR && useDR ) continue;
-	      //calc P vectors
-	      mllgam = muon1.p4()+muon2.p4()+photons[i].p4();
-	      mll = muon1.p4()+muon2.p4();
-	      //check inv mass
-	      if( mllgam.M() < 4 || mllgam.M() > 100) continue;
-	      massDiffPhot = fabs(mllgam.M() - Zmass);
-	      massDiffNoPhot = fabs(mll.M() - Zmass);
+        if( smallestDeltaR > 0.07  || smallestDeltaR > deltaRVec[i] ) continue;
+        if( smallestDeltaR > totalSmallestDeltaR && useDR ) continue;
+        //calc P vectors
+        mllgam = muon1.p4()+muon2.p4()+photons[i].p4();
+        mll = muon1.p4()+muon2.p4();
+        //check inv mass
+        if( mllgam.M() < 4 || mllgam.M() > 100) continue;
+        massDiffPhot = fabs(mllgam.M() - Zmass);
+        massDiffNoPhot = fabs(mll.M() - Zmass);   
 
-	      
-	      
-
-	      //if its smaller with phot, keep phot
-	      if( massDiffPhot < massDiffNoPhot )
-		{
-		  if( deltaR1 < coneSize && deltaR1 > isoVetoMuons && deltaR1 > 1e-06 ){muon1Iso = helper.pfIsoFSR(muon1,muonRho,photons[i].pt());}
-		  else{muon1Iso = helper.pfIso(muon1,muonRho);}
-		  if( deltaR2 < coneSize && deltaR2 > isoVetoMuons && deltaR2 > 1e-06 ){muon2Iso = helper.pfIsoFSR(muon2,muonRho,photons[i].pt());}
-		  else{muon2Iso = helper.pfIso(muon2,muonRho);}
+        //if its smaller with phot, keep phot
+        if( massDiffPhot < massDiffNoPhot )
+        {
+          if( deltaR1 < coneSize && deltaR1 > isoVetoMuons && deltaR1 > 1e-06 )
+          {muon1Iso = helper.pfIsoFSR(muon1,muonRho,photons[i].pt());} 
+          else
+          {muon1Iso = helper.pfIso(muon1,muonRho);}
+          if( deltaR2 < coneSize && deltaR2 > isoVetoMuons && deltaR2 > 1e-06 )
+          {muon2Iso = helper.pfIsoFSR(muon2,muonRho,photons[i].pt());}
+          else
+          {muon2Iso = helper.pfIso(muon2,muonRho);}
 		
-		  if(muon1Iso < isoCut && muon2Iso < isoCut)
-		    {
-		      foundPhot = true;
-		      if(useDR) totalSmallestDeltaR = smallestDeltaR;
-		      if(usePT) photHighestPt = photons[i].pt();
-		      photVec = photons[i].p4();
-		      ZVec = mllgam;
-		      assocMuon = assocMuonTmp;
-		      taken2 = (int)i;
-		      foundZ = true;
-		    }
-		}
-	      useDR = false;
-	      usePT = false;
-	    }
-	}
-      if(!foundPhot)
-	{
-	  muon1Iso = helper.pfIso(muon1,muonRho);
-	  muon2Iso = helper.pfIso(muon2,muonRho);
-	  mll = muon1.p4()+muon2.p4();
+          if(muon1Iso < isoCut && muon2Iso < isoCut)
+          {
+            foundPhot = true;
+            if(useDR) totalSmallestDeltaR = smallestDeltaR;
+            if(usePT) photHighestPt = photons[i].pt();
+            photVec = photons[i].p4();
+            ZVec = mllgam;
+            assocMuon = assocMuonTmp;
+            taken2 = (int)i;
+            foundZ = true;
+            if(useDR) FSRType = 1;
+            if(usePT) FSRType = 3;
+          }
+        }
+        useDR = false;
+        usePT = false;
+      }
+    }
+    if(!foundPhot)
+    {
+      muon1Iso = helper.pfIso(muon1,muonRho);
+	    muon2Iso = helper.pfIso(muon2,muonRho);
+	    mll = muon1.p4()+muon2.p4();
 
-	  if( muon1Iso < isoCut && muon2Iso < isoCut )
-	    {
-	      ZVec = muon1.p4()+muon2.p4();
-	      taken2 = 999;
+      if( muon1Iso < isoCut && muon2Iso < isoCut )
+      {
+        ZVec = muon1.p4()+muon2.p4();
+        taken2 = 999;
 	      assocMuon = 999;
 	      foundPhot = false;
 	      foundZ = true;
 	    }
-
-	}
-    }
+	  }
+  }
   else{
     muon1Iso = helper.pfIso(muon1,muonRho);
     muon2Iso = helper.pfIso(muon2,muonRho);
@@ -5969,17 +5990,25 @@ bool UFHZZ4LAna::findZ(std::vector<pat::PFParticle> photons, std::vector<double>
     mll = muon1.p4()+muon2.p4();
 
     if( muon1Iso < isoCut && muon2Iso < isoCut )
-      {
-	ZVec = muon1.p4()+muon2.p4();
-	taken2 = 999;
-	assocMuon = 999;
-	foundPhot = false;
-	foundZ = true;
-      }
+    {
+      ZVec = muon1.p4()+muon2.p4();
+	    taken2 = 999;
+      assocMuon = 999;
+	    foundPhot = false;
+      foundZ = true;
+    }
     
   }	  
   
   foundPhoton = foundPhot;
+  
+  if(foundPhot) 
+  {
+    if (FSRtype == 1) nEvFSRPtLt4++; 
+    if (FSRtype == 2) nEvFSRPtGt4dR0p5MatchHadISO++; 
+    if (FSRtype == 3) nEvFSRPtGt4dR0p07Match++;
+  }
+  
   return foundZ;
 } 
 
