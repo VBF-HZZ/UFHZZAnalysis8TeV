@@ -2191,9 +2191,9 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	<< "nEvWith2FSR: " << endl
         << nEvWith2FSRZ<< "/ " << nEvWith2FSRZ_4e << "/ " << nEvWith2FSRZ_4mu << "/ " << nEvWith2FSRZ_2e2mu <<endl;
         
-  cout << "nEvFSRPtLt4: " << nEvFSRPtLt4  
-  << "nEvFSRPtGt4dR0p5MatchHadISO = " << nEvFSRPtGt4dR0p5MatchHadISO
-  << "nEvFSRPtGt4dR0p07Match = " << nEvFSRPtGt4dR0p07Match << endl;
+  cout << "nEvFSRPtLt4: " << nEvFSRPtLt4 << "; "  
+  << "nEvFSRPtGt4dR0p5MatchHadISO = " << nEvFSRPtGt4dR0p5MatchHadISO  << "; "
+  << "nEvFSRPtGt4dR0p07Match = " << nEvFSRPtGt4dR0p07Match  << "; " << endl;
 
 
 
@@ -5892,28 +5892,28 @@ bool UFHZZ4LAna::findZ(std::vector<pat::PFParticle> photons, std::vector<double>
         {muon1Iso = helper.pfIsoFSR(muon1,muonRho,photons[i].pt());}
         else
         {muon1Iso = helper.pfIso(muon1,muonRho);}
-	      if( deltaR2 < coneSize && deltaR2 > isoVetoMuons && deltaR2 > 1e-06)
-	      {muon2Iso = helper.pfIsoFSR(muon2,muonRho,photons[i].pt());}
-	      else
-	      {muon2Iso = helper.pfIso(muon2,muonRho);}
-	      if(muon1Iso < isoCut && muon2Iso < isoCut)
-	      {
-	        foundPhot = true;
-	        photHighestPt = photons[i].pt();
-	        photVec = photons[i].p4();
-	        ZVec = mllgam;
-	        assocMuon = assocMuonTmp;
-	        taken2 = (int)i;
-	        foundZ = true;
-	        FSRType = 2;
-	      }
-	    }
-	  }
+        if( deltaR2 < coneSize && deltaR2 > isoVetoMuons && deltaR2 > 1e-06)
+        {muon2Iso = helper.pfIsoFSR(muon2,muonRho,photons[i].pt());}
+        else
+        {muon2Iso = helper.pfIso(muon2,muonRho);}
+        if(muon1Iso < isoCut && muon2Iso < isoCut)
+        {
+          foundPhot = true;
+          photHighestPt = photons[i].pt();
+          photVec = photons[i].p4();
+          ZVec = mllgam;
+          assocMuon = assocMuonTmp;
+          taken2 = (int)i;
+          foundZ = true;
+          FSRType = 2;
+        }
+      }
+    }
     if(!foundPhot)
-	  {
-	    bool useDR = false, usePT = false;
-	    for(unsigned int i = 0; i < photons.size(); i++)
-	    {
+    {
+      bool useDR = false, usePT = false;
+      for(unsigned int i = 0; i < photons.size(); i++)
+      {
         if( taken1 == (int)i ) continue;
         //pt, eta checks
         if( photons[i].pt() < 2 ) continue;
@@ -5924,9 +5924,9 @@ bool UFHZZ4LAna::findZ(std::vector<pat::PFParticle> photons, std::vector<double>
         //calc both deltaRs
         deltaR1 = deltaR(muon1.eta(),muon1.phi(),photons[i].eta(),photons[i].phi());
         deltaR2 = deltaR(muon2.eta(),muon2.phi(),photons[i].eta(),photons[i].phi());
-	      //associate with closest lepton
-	      if( deltaR1 < deltaR2 ){ assocMuonTmp = 1; smallestDeltaR = deltaR1;}
-	      else{ assocMuonTmp = 2; smallestDeltaR = deltaR2;}
+        //associate with closest lepton
+        if( deltaR1 < deltaR2 ){ assocMuonTmp = 1; smallestDeltaR = deltaR1;}
+        else{ assocMuonTmp = 2; smallestDeltaR = deltaR2;}
         if( smallestDeltaR > 0.07  || smallestDeltaR > deltaRVec[i] ) continue;
         if( smallestDeltaR > totalSmallestDeltaR && useDR ) continue;
         //calc P vectors
@@ -5970,31 +5970,30 @@ bool UFHZZ4LAna::findZ(std::vector<pat::PFParticle> photons, std::vector<double>
     if(!foundPhot)
     {
       muon1Iso = helper.pfIso(muon1,muonRho);
-	    muon2Iso = helper.pfIso(muon2,muonRho);
-	    mll = muon1.p4()+muon2.p4();
+      muon2Iso = helper.pfIso(muon2,muonRho);
+      mll = muon1.p4()+muon2.p4();
 
       if( muon1Iso < isoCut && muon2Iso < isoCut )
       {
         ZVec = muon1.p4()+muon2.p4();
         taken2 = 999;
-	      assocMuon = 999;
-	      foundPhot = false;
-	      foundZ = true;
-	    }
-	  }
+        assocMuon = 999;
+        foundPhot = false;
+        foundZ = true;
+      }
+    }
   }
   else{
     muon1Iso = helper.pfIso(muon1,muonRho);
     muon2Iso = helper.pfIso(muon2,muonRho);
-
     mll = muon1.p4()+muon2.p4();
 
     if( muon1Iso < isoCut && muon2Iso < isoCut )
     {
       ZVec = muon1.p4()+muon2.p4();
-	    taken2 = 999;
+      taken2 = 999;
       assocMuon = 999;
-	    foundPhot = false;
+      foundPhot = false;
       foundZ = true;
     }
     
@@ -6002,11 +6001,11 @@ bool UFHZZ4LAna::findZ(std::vector<pat::PFParticle> photons, std::vector<double>
   
   foundPhoton = foundPhot;
   
-  if(foundPhot) 
+  if(foundZ && foundPhot) 
   {
-    if (FSRtype == 1) nEvFSRPtLt4++; 
-    if (FSRtype == 2) nEvFSRPtGt4dR0p5MatchHadISO++; 
-    if (FSRtype == 3) nEvFSRPtGt4dR0p07Match++;
+    if (FSRType == 1) nEvFSRPtLt4++; 
+    if (FSRType == 2) nEvFSRPtGt4dR0p5MatchHadISO++; 
+    if (FSRType == 3) nEvFSRPtGt4dR0p07Match++;
   }
   
   return foundZ;
