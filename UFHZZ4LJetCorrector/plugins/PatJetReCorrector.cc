@@ -54,6 +54,7 @@ PatJetReCorrector::PatJetReCorrector(const edm::ParameterSet& iConfig) :
 
 
 void PatJetReCorrector::produce(edm::Event& iEvent, const edm::EventSetup& iSetup) {
+
     edm::Handle<edm::View<pat::Jet> > jets;
     iEvent.getByLabel(jets_,jets);
 

@@ -173,6 +173,13 @@ class HZZ4LHelper
   double pfIso(pat::Electron elec, double Rho);
   double pfIsoFSR(pat::Muon muon, double Rho, double photPt);
   double pfIsoFSR(pat::Electron elec, double Rho, double photPt);
+  double pfIsoCharged(pat::Muon muon, double Rho);
+  double pfIsoCharged(pat::Electron elec, double Rho);
+  double pfIsoNeutral(pat::Muon muon, double Rho);
+  double pfIsoNeutral(pat::Electron elec, double Rho);
+  double pfIsoPhoton(pat::Muon muon, double Rho);
+  double pfIsoPhoton(pat::Electron elec, double Rho);
+
 
 
   enum MuonEffectiveAreaType {
@@ -876,6 +883,7 @@ std::vector<pat::Muon> HZZ4LHelper::goodMuons2012_noIso(edm::Handle<edm::View<pa
 
   for(edm::View<pat::Muon>::const_iterator mu=Muons->begin(); mu != Muons->end(); ++mu)
     {
+        cout<<"pt "<<mu->pt()<<" eta "<<mu->eta()<<" isPFMuon "<<mu->isPFMuon()<<" isGlobalMuon "<<mu->isGlobalMuon()<<" isTrackerMuon "<<mu->isTrackerMuon()<<" SIP3D"<<getSIP3D(*mu)<<" dxy "<<mu->innerTrack()->dxy(vertex->position())<<" dz "<<mu->innerTrack()->dz(vertex->position())<<endl;
       if( mu->pt() > muPtCut && abs(mu->eta()) < muEtaCut && mu->isPFMuon() == 1 && (mu->isGlobalMuon() || mu->isTrackerMuon() ) )
 	{
 	  if( abs(getSIP3D(*mu)) < sipCut )
@@ -3482,6 +3490,53 @@ double HZZ4LHelper::pfIsoFSR(pat::Electron elec, double Rho, double photPt)
   double iso = (elec.chargedHadronIso()+max(elec.photonIso()-photPt+elec.neutralHadronIso()-PUCorr,0.0))/elec.pt();
   
   return iso;
+}
+
+double HZZ4LHelper::pfIsoCharged(pat::Muon muon, double Rho)
+{
+    using namespace edm;
+    using namespace pat;
+    using namespace std;
+
+    double iso = muon.chargedHadronIso();
+    return iso;
+}
+
+
+double HZZ4LHelper::pfIsoCharged(pat::Electron elec, double Rho)
+{
+    using namespace edm;
+    using namespace pat;
+    using namespace std;
+
+    double iso = elec.chargedHadronIso();
+    return iso;
+}
+
+double HZZ4LHelper::pfIsoNeutral(pat::Muon muon, double Rho)
+{
+    using namespace edm;
+    using namespace pat;
+    using namespace std;
+
+    //double PUCorr = Rho*MuonEffArea(muEAtype,muon.eta(),muEAtarget);                                                                                                    
+    double PUCorr = 0.5*muon.userIsolation("PfPUChargedHadronIso");
+    double iso = max(muon.photonIso()+muon.neutralHadronIso()-PUCorr,0.0);
+
+    return iso;
+}
+
+
+double HZZ4LHelper::pfIsoNeutral(pat::Electron elec, double Rho)
+{
+    using namespace edm;
+    using namespace pat;
+    using namespace std;
+
+    double PUCorr = Rho*ElecEffArea(elEAtype,elec.superCluster()->eta(),elEAtarget);
+    double iso = max(elec.photonIso()+elec.neutralHadronIso()-PUCorr,0.0);
+
+    return iso;
 }
 
 

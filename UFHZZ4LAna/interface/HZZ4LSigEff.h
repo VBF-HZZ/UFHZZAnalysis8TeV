@@ -85,10 +85,22 @@ class HZZ4LSigEff
   void advanceSigDenCounters(edm::Handle<reco::GenParticleCollection> genParticles, std::string &event, double evtWeight);
   void advanceSigDenCountersPseudo(edm::Handle<reco::GenParticleCollection> genParticles, std::string &event, double evtWeight);
   void printDecayList(edm::Handle<reco::GenParticleCollection> genParticles);
+
   bool IsMotherZ(const reco::GenParticle* p);
+  bool IsMotherW(const reco::GenParticle* p);
+  bool IsMotherH(const reco::GenParticle* p);
+
+  void advanceSigNumCounters_looseID4(std::string genEvent, double evtWeight);
   void advanceSigNumCounters_ID(std::string genEvent, double evtWeight);
+  void advanceSigNumCounters_ID4(std::string genEvent, double evtWeight);
+  void advanceSigNumCounters_properID4(std::string genEvent, double evtWeight);
+
   void advanceSigNumCounters_MZ1(std::string genEvent, double evtWeight);
+  void advanceSigNumCounters_trueMZ1(std::string genEvent, double evtWeight);
+
   void advanceSigNumCounters_MZ2(std::string genEvent, std::string recoEvent, double evtWeight);
+  void advanceSigNumCounters_trueMZ2(std::string genEvent, std::string recoEvent, double evtWeight);
+
   void advanceSigNumCounters_M4L(std::string genEvent, std::string recoEvent, double evtWeight);
   void advanceSigNumCounters_FINAL(std::string genEvent, std::string recoEvent, double evtWeight);
   void advanceSigNumCounters_FINAL(std::string genEvent, std::string recoEvent, double evtWeight,std::vector<pat::Muon> selectedMuons, std::vector<pat::Electron> selectedElectrons);
@@ -101,9 +113,6 @@ class HZZ4LSigEff
   double getNGen4ePseudo();
   double getNGen2e2muPseudo();
 
-
-
-
  private:
 
   double nGen4mu, nGen4e, nGen2e2mu;
@@ -111,8 +120,20 @@ class HZZ4LSigEff
   double nReco4mu, nReco4e, nReco2e2mu;
   
   double nReco4mu_ID, nReco4e_ID, nReco2e2mu_ID;
+  double nReco4mu_ID4, nReco4e_ID4, nReco2e2mu_ID4;
+  double nReco4mu_looseID4, nReco4e_looseID4, nReco2e2mu_looseID4;
+  double nReco4mu_properID4, nReco4e_properID4, nReco2e2mu_properID4;
+
   double nReco4mu_MZ1, nReco4e_MZ1, nReco2e2mu_MZ1;
+  double nReco4mu_trueMZ1, nReco4e_trueMZ1, nReco2e2mu_trueMZ1;
+  double nReco4mu_properMZ1, nReco4e_properMZ1, nReco2e2mu_properMZ1;
+  double nReco4mu_improperMZ1, nReco4e_improperMZ1, nReco2e2mu_improperMZ1;
+
   double nReco4mu_MZ2, nReco4e_MZ2, nReco2e2mu_MZ2;
+  double nReco4mu_properMZ2, nReco4e_properMZ2, nReco2e2mu_properMZ2;
+  double nReco4mu_improperMZ2, nReco4e_improperMZ2, nReco2e2mu_improperMZ2;
+  double nReco4mu_trueMZ2, nReco4e_trueMZ2, nReco2e2mu_trueMZ2;
+
   double nReco4mu_M4L, nReco4e_M4L, nReco2e2mu_M4L;
   double nReco4mu_PT2010, nReco4e_PT2010, nReco2e2mu_PT2010;
   double nReco4mu_4GeV, nReco4e_4GeV, nReco2e2mu_4GeV;
@@ -153,14 +174,50 @@ HZZ4LSigEff::HZZ4LSigEff()
   nReco4e_ID = 0;
   nReco2e2mu_ID = 0;
   
+  nReco4mu_ID4 = 0;
+  nReco4e_ID4 = 0;
+  nReco2e2mu_ID4 = 0;
+
+  nReco4mu_looseID4 = 0;
+  nReco4e_looseID4 = 0;
+  nReco2e2mu_looseID4 = 0;
+
+  nReco4mu_properID4 = 0;
+  nReco4e_properID4 = 0;
+  nReco2e2mu_properID4 = 0;
+
   nReco4mu_MZ1 = 0;
   nReco4e_MZ1 = 0;
   nReco2e2mu_MZ1 = 0;
   
+  nReco4mu_properMZ1 = 0;
+  nReco4e_properMZ1 = 0;
+  nReco2e2mu_properMZ1 = 0;
+
+  nReco4mu_improperMZ1 = 0;
+  nReco4e_improperMZ1 = 0;
+  nReco2e2mu_improperMZ1 = 0;
+
   nReco4mu_MZ2 = 0;
   nReco4e_MZ2 = 0;
   nReco2e2mu_MZ2 = 0;
-  
+
+  nReco4mu_trueMZ1 = 0;
+  nReco4e_trueMZ1 = 0;
+  nReco2e2mu_trueMZ1 = 0;
+
+  nReco4mu_properMZ2 = 0;
+  nReco4e_properMZ2 = 0;
+  nReco2e2mu_properMZ2 = 0;  
+
+  nReco4mu_improperMZ2 = 0;
+  nReco4e_improperMZ2 = 0;
+  nReco2e2mu_improperMZ2 = 0;
+
+  nReco4mu_trueMZ2 = 0;
+  nReco4e_trueMZ2 = 0;
+  nReco2e2mu_trueMZ2 = 0;
+
   nReco4mu_M4L = 0;
   nReco4e_M4L = 0;
   nReco2e2mu_M4L = 0;
@@ -202,14 +259,50 @@ HZZ4LSigEff::HZZ4LSigEff(TString treename)
   nReco4e_ID = 0;
   nReco2e2mu_ID = 0;
   
+  nReco4mu_ID4 = 0;
+  nReco4e_ID4 = 0;
+  nReco2e2mu_ID4 = 0;
+
+  nReco4mu_looseID4 = 0;
+  nReco4e_looseID4 = 0;
+  nReco2e2mu_looseID4 = 0;
+
+  nReco4mu_properID4 = 0;
+  nReco4e_properID4 = 0;
+  nReco2e2mu_properID4 = 0;
+
   nReco4mu_MZ1 = 0;
   nReco4e_MZ1 = 0;
   nReco2e2mu_MZ1 = 0;
   
+  nReco4mu_properMZ1 = 0;
+  nReco4e_properMZ1 = 0;
+  nReco2e2mu_properMZ1 = 0;
+
+  nReco4mu_improperMZ1 = 0;
+  nReco4e_improperMZ1 = 0;
+  nReco2e2mu_improperMZ1 = 0;
+
   nReco4mu_MZ2 = 0;
   nReco4e_MZ2 = 0;
   nReco2e2mu_MZ2 = 0;
   
+  nReco4mu_trueMZ1 = 0;
+  nReco4e_trueMZ1 = 0;
+  nReco2e2mu_trueMZ1 = 0;
+
+  nReco4mu_trueMZ2 = 0;
+  nReco4e_trueMZ2 = 0;
+  nReco2e2mu_trueMZ2 = 0;
+
+  nReco4mu_properMZ2 = 0;
+  nReco4e_properMZ2 = 0;
+  nReco2e2mu_properMZ2 = 0;
+
+  nReco4mu_improperMZ2 = 0;
+  nReco4e_improperMZ2 = 0;
+  nReco2e2mu_improperMZ2 = 0;
+
   nReco4mu_M4L = 0;
   nReco4e_M4L = 0;
   nReco2e2mu_M4L = 0;
@@ -313,55 +406,92 @@ void HZZ4LSigEff::makeSigEffTree()
 
   TTree *MyTree = new TTree(globalTreename,globalTreename);
 
-  MyTree->Branch("Gen4mu",&nGen4mu,"Gen4mu/I");
-  MyTree->Branch("Gen4e",&nGen4e,"Gen4e/I");
-  MyTree->Branch("Gen2e2mu",&nGen2e2mu,"Gen2e2mu/I");
+  MyTree->Branch("Gen4mu",&nGen4mu,"Gen4mu/D");
+  MyTree->Branch("Gen4e",&nGen4e,"Gen4e/D");
+  MyTree->Branch("Gen2e2mu",&nGen2e2mu,"Gen2e2mu/D");
 
-  MyTree->Branch("Gen4muPseudo",&nGen4muPseudo,"Gen4muPseudo/I");
-  MyTree->Branch("Gen4ePseudo",&nGen4ePseudo,"Gen4ePseudo/I");
-  MyTree->Branch("Gen2e2muPseudo",&nGen2e2muPseudo,"Gen2e2muPseudo/I");
+  MyTree->Branch("Gen4muPseudo",&nGen4muPseudo,"Gen4muPseudo/D");
+  MyTree->Branch("Gen4ePseudo",&nGen4ePseudo,"Gen4ePseudo/D");
+  MyTree->Branch("Gen2e2muPseudo",&nGen2e2muPseudo,"Gen2e2muPseudo/D");
 
-  MyTree->Branch("Reco4mu_ID",&nReco4mu_ID,"Reco4mu_ID/I");
-  MyTree->Branch("Reco4e_ID",&nReco4e_ID,"Reco4e_ID/I");
-  MyTree->Branch("Reco2e2mu_ID",&nReco2e2mu_ID,"Reco2e2mu_ID/I");
+  MyTree->Branch("Reco4mu_looseID4",&nReco4mu_looseID4,"Reco4mu_looseID4/D");
+  MyTree->Branch("Reco4e_looseID4",&nReco4e_looseID4,"Reco4e_looseID4/D");
+  MyTree->Branch("Reco2e2mu_looseID4",&nReco2e2mu_looseID4,"Reco2e2mu_looseID4/D");
 
-  MyTree->Branch("Reco4mu_MZ1",&nReco4mu_MZ1,"Reco4mu_MZ1/I");
-  MyTree->Branch("Reco4e_MZ1",&nReco4e_MZ1,"Reco4e_MZ1/I");
-  MyTree->Branch("Reco2e2mu_MZ1",&nReco2e2mu_MZ1,"Reco2e2mu_MZ1/I");
+  MyTree->Branch("Reco4mu_ID",&nReco4mu_ID,"Reco4mu_ID/D");
+  MyTree->Branch("Reco4e_ID",&nReco4e_ID,"Reco4e_ID/D");
+  MyTree->Branch("Reco2e2mu_ID",&nReco2e2mu_ID,"Reco2e2mu_ID/D");
 
-  MyTree->Branch("Reco4mu_MZ2",&nReco4mu_MZ2,"Reco4mu_MZ2/I");
-  MyTree->Branch("Reco4e_MZ2",&nReco4e_MZ2,"Reco4e_MZ2/I");
-  MyTree->Branch("Reco2e2mu_MZ2",&nReco2e2mu_MZ2,"Reco2e2mu_MZ2/I");
+  MyTree->Branch("Reco4mu_ID4",&nReco4mu_ID4,"Reco4mu_ID4/D");
+  MyTree->Branch("Reco4e_ID4",&nReco4e_ID4,"Reco4e_ID4/D");
+  MyTree->Branch("Reco2e2mu_ID4",&nReco2e2mu_ID4,"Reco2e2mu_ID4/D");
 
-  MyTree->Branch("Reco4mu_PT2010",&nReco4mu_PT2010,"Reco4mu_PT2010/I");
-  MyTree->Branch("Reco4e_PT2010",&nReco4e_PT2010,"Reco4e_PT2010/I");
-  MyTree->Branch("Reco2e2mu_PT2010",&nReco2e2mu_PT2010,"Reco2e2mu_PT2010/I");
+  MyTree->Branch("Reco4mu_properID4",&nReco4mu_properID4,"Reco4mu_properID4/D");
+  MyTree->Branch("Reco4e_properID4",&nReco4e_properID4,"Reco4e_properID4/D");
+  MyTree->Branch("Reco2e2mu_properID4",&nReco2e2mu_properID4,"Reco2e2mu_properID4/D");
 
-  MyTree->Branch("Reco4mu_4GeV",&nReco4mu_4GeV,"Reco4mu_4GeV/I");
-  MyTree->Branch("Reco4e_4GeV",&nReco4e_4GeV,"Reco4e_4GeV/I");
-  MyTree->Branch("Reco2e2mu_4GeV",&nReco2e2mu_4GeV,"Reco2e2mu_4GeV/I");
+  MyTree->Branch("Reco4mu_MZ1",&nReco4mu_MZ1,"Reco4mu_MZ1/D");
+  MyTree->Branch("Reco4e_MZ1",&nReco4e_MZ1,"Reco4e_MZ1/D");
+  MyTree->Branch("Reco2e2mu_MZ1",&nReco2e2mu_MZ1,"Reco2e2mu_MZ1/D");
 
-  MyTree->Branch("Reco4mu_M4L",&nReco4mu_M4L,"Reco4mu_M4L/I");
-  MyTree->Branch("Reco4e_M4L",&nReco4e_M4L,"Reco4e_M4L/I");
-  MyTree->Branch("Reco2e2mu_M4L",&nReco2e2mu_M4L,"Reco2e2mu_M4L/I");
+  MyTree->Branch("Reco4mu_properMZ1",&nReco4mu_properMZ1,"Reco4mu_properMZ1/D");
+  MyTree->Branch("Reco4e_properMZ1",&nReco4e_properMZ1,"Reco4e_properMZ1/D");
+  MyTree->Branch("Reco2e2mu_properMZ1",&nReco2e2mu_properMZ1,"Reco2e2mu_properMZ1/D");
 
-  MyTree->Branch("Reco4mu_FINAL_3",&nReco4mu_FINAL_3,"Reco4mu_FINAL_3/I");
-  MyTree->Branch("Reco4mu_FINAL_4",&nReco4mu_FINAL_4,"Reco4mu_FINAL_4/I");
-  MyTree->Branch("Reco4mu_FINAL_5",&nReco4mu_FINAL_5,"Reco4mu_FINAL_5/I");
+  MyTree->Branch("Reco4mu_improperMZ1",&nReco4mu_improperMZ1,"Reco4mu_improperMZ1/D");
+  MyTree->Branch("Reco4e_improperMZ1",&nReco4e_improperMZ1,"Reco4e_improperMZ1/D");
+  MyTree->Branch("Reco2e2mu_improperMZ1",&nReco2e2mu_improperMZ1,"Reco2e2mu_improperMZ1/D");
 
-  MyTree->Branch("Reco4e_FINAL_5",&nReco4e_FINAL_5,"Reco4e_FINAL_5/I");
-  MyTree->Branch("Reco4e_FINAL_6",&nReco4e_FINAL_6,"Reco4e_FINAL_6/I");
-  MyTree->Branch("Reco4e_FINAL_7",&nReco4e_FINAL_7,"Reco4e_FINAL_7/I");
+  MyTree->Branch("Reco4mu_MZ2",&nReco4mu_MZ2,"Reco4mu_MZ2/D");
+  MyTree->Branch("Reco4e_MZ2",&nReco4e_MZ2,"Reco4e_MZ2/D");
+  MyTree->Branch("Reco2e2mu_MZ2",&nReco2e2mu_MZ2,"Reco2e2mu_MZ2/D");
 
-  MyTree->Branch("Reco2e2mu_FINAL_35",&nReco2e2mu_FINAL_35,"Reco2e2mu_FINAL_35/I");
-  MyTree->Branch("Reco2e2mu_FINAL_36",&nReco2e2mu_FINAL_36,"Reco2e2mu_FINAL_36/I");
-  MyTree->Branch("Reco2e2mu_FINAL_37",&nReco2e2mu_FINAL_37,"Reco2e2mu_FINAL_37/I");
-  MyTree->Branch("Reco2e2mu_FINAL_45",&nReco2e2mu_FINAL_45,"Reco2e2mu_FINAL_45/I");
-  MyTree->Branch("Reco2e2mu_FINAL_46",&nReco2e2mu_FINAL_46,"Reco2e2mu_FINAL_46/I");
-  MyTree->Branch("Reco2e2mu_FINAL_47",&nReco2e2mu_FINAL_47,"Reco2e2mu_FINAL_47/I");
-  MyTree->Branch("Reco2e2mu_FINAL_55",&nReco2e2mu_FINAL_55,"Reco2e2mu_FINAL_55/I");
-  MyTree->Branch("Reco2e2mu_FINAL_56",&nReco2e2mu_FINAL_56,"Reco2e2mu_FINAL_56/I");
-  MyTree->Branch("Reco2e2mu_FINAL_57",&nReco2e2mu_FINAL_57,"Reco2e2mu_FINAL_57/I");
+  MyTree->Branch("Reco4mu_properMZ2",&nReco4mu_properMZ2,"Reco4mu_properMZ2/D");
+  MyTree->Branch("Reco4e_properMZ2",&nReco4e_properMZ2,"Reco4e_properMZ2/D");
+  MyTree->Branch("Reco2e2mu_properMZ2",&nReco2e2mu_properMZ2,"Reco2e2mu_properMZ2/D");
+
+  MyTree->Branch("Reco4mu_improperMZ2",&nReco4mu_improperMZ2,"Reco4mu_improperMZ2/D");
+  MyTree->Branch("Reco4e_improperMZ2",&nReco4e_improperMZ2,"Reco4e_improperMZ2/D");
+  MyTree->Branch("Reco2e2mu_improperMZ2",&nReco2e2mu_improperMZ2,"Reco2e2mu_improperMZ2/D");
+
+  MyTree->Branch("Reco4mu_trueMZ1",&nReco4mu_trueMZ1,"Reco4mu_trueMZ1/D");
+  MyTree->Branch("Reco4e_trueMZ1",&nReco4e_trueMZ1,"Reco4e_trueMZ1/D");
+  MyTree->Branch("Reco2e2mu_trueMZ1",&nReco2e2mu_trueMZ1,"Reco2e2mu_trueMZ1/D");
+
+  MyTree->Branch("Reco4mu_trueMZ2",&nReco4mu_trueMZ2,"Reco4mu_trueMZ2/D");
+  MyTree->Branch("Reco4e_trueMZ2",&nReco4e_trueMZ2,"Reco4e_trueMZ2/D");
+  MyTree->Branch("Reco2e2mu_trueMZ2",&nReco2e2mu_trueMZ2,"Reco2e2mu_trueMZ2/D");
+
+  MyTree->Branch("Reco4mu_PT2010",&nReco4mu_PT2010,"Reco4mu_PT2010/D");
+  MyTree->Branch("Reco4e_PT2010",&nReco4e_PT2010,"Reco4e_PT2010/D");
+  MyTree->Branch("Reco2e2mu_PT2010",&nReco2e2mu_PT2010,"Reco2e2mu_PT2010/D");
+
+  MyTree->Branch("Reco4mu_4GeV",&nReco4mu_4GeV,"Reco4mu_4GeV/D");
+  MyTree->Branch("Reco4e_4GeV",&nReco4e_4GeV,"Reco4e_4GeV/D");
+  MyTree->Branch("Reco2e2mu_4GeV",&nReco2e2mu_4GeV,"Reco2e2mu_4GeV/D");
+
+  MyTree->Branch("Reco4mu_M4L",&nReco4mu_M4L,"Reco4mu_M4L/D");
+  MyTree->Branch("Reco4e_M4L",&nReco4e_M4L,"Reco4e_M4L/D");
+  MyTree->Branch("Reco2e2mu_M4L",&nReco2e2mu_M4L,"Reco2e2mu_M4L/D");
+/*
+  MyTree->Branch("Reco4mu_FINAL_3",&nReco4mu_FINAL_3,"Reco4mu_FINAL_3/D");
+  MyTree->Branch("Reco4mu_FINAL_4",&nReco4mu_FINAL_4,"Reco4mu_FINAL_4/D");
+  MyTree->Branch("Reco4mu_FINAL_5",&nReco4mu_FINAL_5,"Reco4mu_FINAL_5/D");
+
+  MyTree->Branch("Reco4e_FINAL_5",&nReco4e_FINAL_5,"Reco4e_FINAL_5/D");
+  MyTree->Branch("Reco4e_FINAL_6",&nReco4e_FINAL_6,"Reco4e_FINAL_6/D");
+  MyTree->Branch("Reco4e_FINAL_7",&nReco4e_FINAL_7,"Reco4e_FINAL_7/D");
+
+  MyTree->Branch("Reco2e2mu_FINAL_35",&nReco2e2mu_FINAL_35,"Reco2e2mu_FINAL_35/D");
+  MyTree->Branch("Reco2e2mu_FINAL_36",&nReco2e2mu_FINAL_36,"Reco2e2mu_FINAL_36/D");
+  MyTree->Branch("Reco2e2mu_FINAL_37",&nReco2e2mu_FINAL_37,"Reco2e2mu_FINAL_37/D");
+  MyTree->Branch("Reco2e2mu_FINAL_45",&nReco2e2mu_FINAL_45,"Reco2e2mu_FINAL_45/D");
+  MyTree->Branch("Reco2e2mu_FINAL_46",&nReco2e2mu_FINAL_46,"Reco2e2mu_FINAL_46/D");
+  MyTree->Branch("Reco2e2mu_FINAL_47",&nReco2e2mu_FINAL_47,"Reco2e2mu_FINAL_47/D");
+  MyTree->Branch("Reco2e2mu_FINAL_55",&nReco2e2mu_FINAL_55,"Reco2e2mu_FINAL_55/D");
+  MyTree->Branch("Reco2e2mu_FINAL_56",&nReco2e2mu_FINAL_56,"Reco2e2mu_FINAL_56/D");
+  MyTree->Branch("Reco2e2mu_FINAL_57",&nReco2e2mu_FINAL_57,"Reco2e2mu_FINAL_57/D");
+*/
 
   MyTree->Fill();
 
@@ -383,6 +513,31 @@ bool HZZ4LSigEff::IsMotherZ(const reco::GenParticle* p){
 	return yes;
 }
 
+bool HZZ4LSigEff::IsMotherW(const reco::GenParticle* p){
+        bool yes = false;
+        int nMo = p->numberOfMothers();
+        const reco::Candidate* g= (const reco::Candidate*)p;
+        while (nMo>0) {
+                if(abs(g->mother()->pdgId()) == 24) return true;
+                else {
+                        g = (g->mother());
+                        nMo = g->numberOfMothers();
+                }
+        }
+        return yes;
+}
+
+
+bool HZZ4LSigEff::IsMotherH(const reco::GenParticle* p){
+        bool yes = false;
+        int nMo = p->numberOfMothers();
+        const reco::Candidate* g= (const reco::Candidate*)p;
+        
+        if(g->mother()->mother()->pdgId() == 25) return true;
+        
+        return yes;
+}
+
 
 void HZZ4LSigEff::advanceSigDenCounters(edm::Handle<reco::GenParticleCollection> genParticles, std::string &event, double evtWeight)
 {
@@ -392,6 +547,10 @@ void HZZ4LSigEff::advanceSigDenCounters(edm::Handle<reco::GenParticleCollection>
   using namespace edm;
 
   int tauCount=0, nMuon=0, nElec=0, nMuonPseudo=0, nElecPseudo=0;
+  int nMuonH=0, nElecH=0, nMuonPseudoH=0, nElecPseudoH=0;
+
+  int nMuonPseudoM = 0, nMuonPseudoP = 0, nElecPseudoM = 0, nElecPseudoP = 0;
+
   //bool Brem = false;
 
   event = "";
@@ -400,15 +559,18 @@ void HZZ4LSigEff::advanceSigDenCounters(edm::Handle<reco::GenParticleCollection>
   
   for(genPart = genParticles->begin(); genPart != genParticles->end(); genPart++){
     
+    if(genPart->status()!=3) continue;
+
+    /*
     if( genPart->pdgId() == 15 || genPart->pdgId() == -15)
       {
-	if( IsMotherZ(&*genPart) ) 
+	if( IsMotherZ(&*genPart) || IsMotherW(&*genPart) ) 
 	  {
 	    tauCount++;
 	    
 	  }
       }
-    
+    */  
     /*
     if( genPart->pdgId() == 22 )
       {
@@ -427,46 +589,71 @@ void HZZ4LSigEff::advanceSigDenCounters(edm::Handle<reco::GenParticleCollection>
 	// Mother is a Z                                                                                                                                   
 	//if ( genPart->mother()->pdgId() == 23 || genPart->mother()->mother()->pdgId() == 23 ||
 	//     genPart->mother()->mother()->mother()->pdgId() == 23 || genPart->mother()->mother()->mother()->mother()->pdgId() == 23)
-	if(IsMotherZ(&*genPart))
-	  {
+//	if(IsMotherZ(&*genPart) || IsMotherW(&*genPart))
+//	  {
 	    
 	    if( abs(genPart->pdgId()) == 13 ){ nMuon++;}                                                                  
 	    if( abs(genPart->pdgId()) == 11 ){ nElec++;}                                                              
 	    
+            //cout<<"genPart id "<<genPart->pdgId()<<" pt "<<genPart->pt()<<" eta "<<genPart->eta()<<endl;
+
 	    // In fiducial volume:                                                                                                                         
 	    if ( (abs(genPart->pdgId()) == 13 && abs(genPart->eta()) < 2.4) || (abs(genPart->pdgId()) == 11 && abs(genPart->eta()) < 2.5) )
 	      {
-		//if( abs(genPart->pdgId()) == 13 ){ nMuon++;}
-		//if( abs(genPart->pdgId()) == 11 ){ nElec++;}
 		
 		if ( (abs(genPart->pdgId()) == 11 && genPart->pt() > 7) || ( abs(genPart->pdgId()) == 13 && genPart->pt() > 5) )
 		  {
-		    if( abs(genPart->pdgId()) == 13 ){ nMuonPseudo++;}
-		    if( abs(genPart->pdgId()) == 11 ){ nElecPseudo++;}
+		    if( abs(genPart->pdgId()) == 13 ){ nMuonPseudo++;} if( genPart->pdgId() == 13 ){ nMuonPseudoM++;} if( genPart->pdgId() == -13 ){ nMuonPseudoP++;}
+		    if( abs(genPart->pdgId()) == 11 ){ nElecPseudo++;} if( genPart->pdgId() == 11 ){ nElecPseudoM++;} if( genPart->pdgId() == -11 ){ nElecPseudoP++;}
 		    
 		  }
 	      }
 	    
-	  }
+//	  }
+
+
+        if( IsMotherH(&*genPart) )
+          {
+
+            if( abs(genPart->pdgId()) == 13 ){ nMuonH++;}
+            if( abs(genPart->pdgId()) == 11 ){ nElecH++;}
+
+            // In fiducial volume:                                                                                                                         
+            if ( (abs(genPart->pdgId()) == 13 && abs(genPart->eta()) < 2.4) || (abs(genPart->pdgId()) == 11 && abs(genPart->eta()) < 2.5) )
+              {
+                
+                if ( (abs(genPart->pdgId()) == 11 && genPart->pt() > 7) || ( abs(genPart->pdgId()) == 13 && genPart->pt() > 5) )
+                  {
+                    if( abs(genPart->pdgId()) == 13 ){ nMuonPseudoH++;}
+                    if( abs(genPart->pdgId()) == 11 ){ nElecPseudoH++;}
+
+                  }
+              }
+
+          }
+
       }
     
   }
 
+   //cout<<"nMuonPseudoM "<<nMuonPseudoM<<" nMuonPseudoP "<<nMuonPseudoP<<" nElecPseudoM "<<nElecPseudoM<<" nElecPseudoP "<<nElecPseudoP<<endl;
 
-  if( tauCount < 2 )
-    {
-      if( nMuon == 4 ){ nGen4mu+=evtWeight; event = "4mu";}
-      if( nElec == 4 ){ nGen4e+=evtWeight; event = "4e";}
-      if( nMuon == 2 && nElec == 2 ){ nGen2e2mu+=evtWeight; event = "2e2mu";}
+   if(nMuonPseudoH == 4 || nElecPseudoH == 4 || (nMuonPseudoH == 2 && nElecPseudoH == 2)){
 
-      if( nMuonPseudo == 4 ){ nGen4muPseudo+=evtWeight;}
-      if( nElecPseudo == 4 ){ nGen4ePseudo+=evtWeight; }
-      if( nMuonPseudo == 2 && nElecPseudo == 2 ){ nGen2e2muPseudo+=evtWeight; }
+      if( nMuonPseudoH == 4 ){ nGen4muPseudo+=evtWeight; event = "4mu";}
+      if( nElecPseudoH == 4 ){ nGen4ePseudo+=evtWeight;  event = "4e";}
+      if( nMuonPseudoH == 2 && nElecPseudoH == 2 ){ nGen2e2muPseudo+=evtWeight; event = "2e2mu";}
+   }
+   else{
 
-    }else {
-	    event = "tau";
-    }
+      if( nMuonPseudoM>=2 && nMuonPseudoP >= 2 ){ nGen4muPseudo+=evtWeight; event = "4mu";}
+      if( nElecPseudoM>=2 && nElecPseudoP >= 2 ){ nGen4ePseudo+=evtWeight; event = "4e";}
+      if( nMuonPseudoM > 0 && nMuonPseudoP > 0 && nElecPseudoM > 0 && nElecPseudoP > 0 ){ nGen2e2muPseudo+=evtWeight; event = "2e2mu";}
+   }
+
+
   if(event==""){
+
     //cout<<" DEBUGMATT event NONETYPE :"<<endl;
     //printDecayList(genParticles);
 	
@@ -475,6 +662,20 @@ void HZZ4LSigEff::advanceSigDenCounters(edm::Handle<reco::GenParticleCollection>
   // cout<<"** DEBUGMATT higgs event "<<event<<endl; 
 }
 
+void HZZ4LSigEff::advanceSigNumCounters_looseID4(std::string genEvent, double evtWeight)
+{
+
+  using namespace std;
+  using namespace pat;
+  using namespace edm;
+
+  if( genEvent == "4mu"  ){ nReco4mu_looseID4+=evtWeight;   }
+  if( genEvent == "4e"   ){ nReco4e_looseID4+=evtWeight;    }
+  if( genEvent == "2e2mu"){ nReco2e2mu_looseID4+=evtWeight; }
+
+  //cout<<"** DEBUGMATT pass 2l:  "<< genEvent <<endl;
+
+}
 
 void HZZ4LSigEff::advanceSigNumCounters_ID(std::string genEvent, double evtWeight)
 {
@@ -491,21 +692,78 @@ void HZZ4LSigEff::advanceSigNumCounters_ID(std::string genEvent, double evtWeigh
   
 }
 
-
-void HZZ4LSigEff::advanceSigNumCounters_MZ1(std::string genEvent,  double evtWeight)
+void HZZ4LSigEff::advanceSigNumCounters_ID4(std::string genEvent, double evtWeight)
 {
 
   using namespace std;
   using namespace pat;
   using namespace edm;
 
-  if( genEvent == "4mu" ){ nReco4mu_MZ1+=evtWeight;   }
+  if( genEvent == "4mu"  ){ nReco4mu_ID4+=evtWeight;   }
+  if( genEvent == "4e"   ){ nReco4e_ID4+=evtWeight;    }
+  if( genEvent == "2e2mu"){ nReco2e2mu_ID4+=evtWeight; }
+
+  //cout<<"** DEBUGMATT pass 2l:  "<< genEvent <<endl;
+
+}
+
+
+void HZZ4LSigEff::advanceSigNumCounters_properID4(std::string genEvent, double evtWeight)
+{
+
+  using namespace std;
+  using namespace pat;
+  using namespace edm;
+
+  if( genEvent == "4mu" ){ nReco4mu_properID4+=evtWeight;   }
+  if( genEvent == "4e" ){ nReco4e_properID4+=evtWeight;    }
+  if( genEvent == "2e2mu" ){ nReco2e2mu_properID4+=evtWeight; }  
+
+  //cout<<"** DEBUGMATT pass 2l:  "<< genEvent <<endl;
+
+}
+
+
+void HZZ4LSigEff::advanceSigNumCounters_MZ1(std::string genEvent, double evtWeight)
+{
+
+  using namespace std;
+  using namespace pat;
+  using namespace edm;
+
+  if( genEvent == "4mu"   ){ nReco4mu_MZ1+=evtWeight;   }
   if( genEvent == "4e"    ){ nReco4e_MZ1+=evtWeight;    }
   if( genEvent == "2e2mu" ){ nReco2e2mu_MZ1+=evtWeight; }
   
+/*  
+  if( genEvent == "4mu" && recoEvent == "reco4mu" ){ nReco4mu_properMZ1+=evtWeight;   }
+  if( genEvent == "4e" && recoEvent == "reco4e"   ){ nReco4e_properMZ1+=evtWeight;    }
+  if( genEvent == "2e2mu" && recoEvent == "reco2e2mu" ){ nReco2e2mu_properMZ1+=evtWeight; }  
   
+  if( genEvent == "4mu" && recoEvent == "reco4mu" ){ nReco4mu_properMZ1+=evtWeight;   }
+  if( genEvent == "4e" && recoEvent == "reco4e"   ){ nReco4e_properMZ1+=evtWeight;    }
+  if( genEvent == "2e2mu" && recoEvent == "reco2e2mu" ){ nReco2e2mu_properMZ1+=evtWeight; }
+
+  if( genEvent == "4mu" && recoEvent != "reco4mu" ){ nReco4mu_improperMZ1+=evtWeight;   }
+  if( genEvent == "4e" && recoEvent != "reco4e"   ){ nReco4e_improperMZ1+=evtWeight;    }
+  if( genEvent == "2e2mu" && recoEvent != "reco2e2mu" ){ nReco2e2mu_improperMZ1+=evtWeight; }
+*/
+
 }
 
+void HZZ4LSigEff::advanceSigNumCounters_trueMZ1(std::string genEvent,  double evtWeight)
+{
+
+  using namespace std;
+  using namespace pat;
+  using namespace edm;
+
+  if( genEvent == "4mu"   ){ nReco4mu_trueMZ1+=evtWeight;   }
+  if( genEvent == "4e"    ){ nReco4e_trueMZ1+=evtWeight;    }
+  if( genEvent == "2e2mu" ){ nReco2e2mu_trueMZ1+=evtWeight; }
+
+
+}
 
 void HZZ4LSigEff::advanceSigNumCounters_MZ2(std::string genEvent, std::string recoEvent, double evtWeight)
 {
@@ -514,13 +772,39 @@ void HZZ4LSigEff::advanceSigNumCounters_MZ2(std::string genEvent, std::string re
   using namespace pat;
   using namespace edm;
 
+  // remove gen reco flavor matching
+  
+  if( recoEvent == "reco4mu" ){ nReco4mu_MZ2+=evtWeight;   }
+  if( recoEvent == "reco4e"   ){ nReco4e_MZ2+=evtWeight;    }
+  if( recoEvent == "reco2e2mu" ){ nReco2e2mu_MZ2+=evtWeight; }
+    
+  if( genEvent == "4mu" && recoEvent == "reco4mu" ){ nReco4mu_properMZ2+=evtWeight;   }
+  if( genEvent == "4e" && recoEvent == "reco4e"   ){ nReco4e_properMZ2+=evtWeight;    }
+  if( genEvent == "2e2mu" && recoEvent == "reco2e2mu" ){ nReco2e2mu_properMZ2+=evtWeight; }
+
+  if( genEvent != "4mu" && recoEvent == "reco4mu" ){ nReco4mu_improperMZ2+=evtWeight;   }
+  if( genEvent != "4e" && recoEvent == "reco4e"   ){ nReco4e_improperMZ2+=evtWeight;    }
+  if( genEvent != "2e2mu" && recoEvent == "reco2e2mu" ){ nReco2e2mu_improperMZ2+=evtWeight; }
+
+  /*
   if( genEvent == "4mu" && recoEvent == "reco4mu" ){ nReco4mu_MZ2+=evtWeight;   }
   if( genEvent == "4e" && recoEvent == "reco4e"   ){ nReco4e_MZ2+=evtWeight;    }
-  if( genEvent == "2e2mu" && recoEvent == "reco2e2mu" ){ nReco2e2mu_MZ2+=evtWeight; }
-  
-  
+  if( genEvent == "2e2mu" && recoEvent == "reco2e2mu" ){ nReco2e2mu_MZ2+=evtWeight; }  
+  */
 }
 
+void HZZ4LSigEff::advanceSigNumCounters_trueMZ2(std::string genEvent, std::string recoEvent, double evtWeight)
+{
+
+  using namespace std;
+  using namespace pat;
+  using namespace edm;
+
+  if( recoEvent == "reco4mu" ){ nReco4mu_trueMZ2+=evtWeight;   }
+  if( recoEvent == "reco4e"   ){ nReco4e_trueMZ2+=evtWeight;    }
+  if( recoEvent == "reco2e2mu" ){ nReco2e2mu_trueMZ2+=evtWeight; }
+
+}
 
 void HZZ4LSigEff::advanceSigNumCounters_M4L(std::string genEvent, std::string recoEvent, double evtWeight)
 {
@@ -528,12 +812,16 @@ void HZZ4LSigEff::advanceSigNumCounters_M4L(std::string genEvent, std::string re
   using namespace std;
   using namespace pat;
   using namespace edm;
-
+ 
+  if( recoEvent == "reco4mu" ){ nReco4mu_M4L+=evtWeight;   }
+  if( recoEvent == "reco4e"   ){ nReco4e_M4L+=evtWeight;    }
+  if( recoEvent == "reco2e2mu" ){ nReco2e2mu_M4L+=evtWeight; }
+  
+  /*
   if( genEvent == "4mu" && recoEvent == "reco4mu" ){ nReco4mu_M4L+=evtWeight;   }
   if( genEvent == "4e" && recoEvent == "reco4e"   ){ nReco4e_M4L+=evtWeight;    }
   if( genEvent == "2e2mu" && recoEvent == "reco2e2mu" ){ nReco2e2mu_M4L+=evtWeight; }
-  
-  
+  */
 }
 
 
@@ -599,11 +887,16 @@ void HZZ4LSigEff::advanceSigNumCounters_PT2010(std::string genEvent,std::string 
   using namespace pat;
   using namespace edm;
 
+  
+  if( recoEvent == "reco4mu" ){ nReco4mu_PT2010+=evtWeight;   }
+  if( recoEvent == "reco4e"  ){ nReco4e_PT2010+=evtWeight;    }
+  if( recoEvent == "reco2e2mu"){ nReco2e2mu_PT2010+=evtWeight; }
+    
+  /*
   if( genEvent == "4mu" && recoEvent == "reco4mu" ){ nReco4mu_PT2010+=evtWeight;   }
-  if( genEvent == "4e" && recoEvent == "reco4e"  ){ nReco4e_PT2010+=evtWeight;    }
-  if( genEvent == "2e2mu" && recoEvent == "reco2e2mu"){ nReco2e2mu_PT2010+=evtWeight; }
-  
-  
+  if( genEvent == "4e" && recoEvent == "reco4e"   ){ nReco4e_PT2010+=evtWeight;    }
+  if( genEvent == "2e2mu" && recoEvent == "reco2e2mu" ){ nReco2e2mu_PT2010+=evtWeight; }
+  */
 }
 
 
@@ -614,11 +907,16 @@ void HZZ4LSigEff::advanceSigNumCounters_4GeV(std::string genEvent, std::string r
   using namespace pat;
   using namespace edm;
 
+  
+  if( recoEvent == "reco4mu" ){ nReco4mu_4GeV+=evtWeight;   }
+  if( recoEvent == "reco4e"   ){ nReco4e_4GeV+=evtWeight;    }
+  if( recoEvent == "reco2e2mu" ){ nReco2e2mu_4GeV+=evtWeight; }
+  
+  /*
   if( genEvent == "4mu" && recoEvent == "reco4mu" ){ nReco4mu_4GeV+=evtWeight;   }
   if( genEvent == "4e" && recoEvent == "reco4e"   ){ nReco4e_4GeV+=evtWeight;    }
   if( genEvent == "2e2mu" && recoEvent == "reco2e2mu" ){ nReco2e2mu_4GeV+=evtWeight; }
-  
-  
+  */
 }
 
 void HZZ4LSigEff::printDecayList(edm::Handle<reco::GenParticleCollection> particles){

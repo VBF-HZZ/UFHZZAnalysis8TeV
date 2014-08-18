@@ -79,8 +79,7 @@ public:
   ~UFHZZ4LGenEvents();
   
   static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
-  
-  
+    
 private:
   virtual void beginJob() ;
   virtual void analyze(const edm::Event&, const edm::EventSetup&);
@@ -411,24 +410,24 @@ void UFHZZ4LGenEvents::fillGenEvent(edm::Handle<reco::GenParticleCollection> gen
   reco::GenParticleCollection::const_iterator  genPart;
   
   for(genPart = genParticles->begin(); genPart != genParticles->end(); genPart++)
-    {
+  {
       if( abs(genPart->pdgId()) == 25 && genPart->status() == 3 ) Higgs.push_back(*genPart);
       if( abs(genPart->pdgId()) == 23 && genPart->status() == 3 ) Zs.push_back(*genPart);
       
       if( abs(genPart->pdgId()) == 13 || abs(genPart->pdgId()) == 11 )
-	{
-	  if( genPart->status() == 1 )
-	    {
-	      if(IsMotherZ(&*genPart)) leptonsS1.push_back(*genPart);
-	    }
-	  if( genPart->status() == 3 )
-	    {
-	      if(IsMotherZ(&*genPart)) leptonsS3.push_back(*genPart);
-	    }
-	}
-      
-    }
-  
+      {
+          if( genPart->status() == 1 )
+          {
+              //if(IsMotherZ(&*genPart)) leptonsS1.push_back(*genPart);
+              leptonsS1.push_back(*genPart);
+          }
+          if( genPart->status() == 3 )
+          {
+              //if(IsMotherZ(&*genPart)) leptonsS3.push_back(*genPart);
+              leptonsS3.push_back(*genPart);
+          }
+      }
+  }
 
 }
 
