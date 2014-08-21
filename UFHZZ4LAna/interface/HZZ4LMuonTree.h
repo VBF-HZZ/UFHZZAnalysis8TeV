@@ -165,7 +165,7 @@ void HZZ4LMuonTree::fillMuonDumpTree(std::vector<pat::Muon> muons, const edm::Ev
       isoCH = muons[i].chargedHadronIso();
       isoPhot = muons[i].photonIso();
       relIso = myHelper.pfIso(muons[i],muonRho);
-      relIsoUncorr = myHelper.pfIso(muons[i],0);
+      relIsoUncorr = myHelper.pfIso(muons[i],-1);
       dz = muons[i].track()->dz(vertex->position()); 
       dxy = muons[i].track()->dxy(vertex->position());
       dB = muons[i].userIsolation("PfPUChargedHadronIso");
