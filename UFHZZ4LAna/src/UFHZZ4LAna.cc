@@ -1269,8 +1269,8 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
     if(doVarDump)
       {
-	muonDump->fillMuonDumpTree(AllMuons,iEvent,muonRho,PV);
-	electronDump->fillElectronDumpTree(AllElectrons,iEvent,elecRho,PV);
+	muonDump->fillMuonDumpTree(AllMuons,iEvent,muonRho,PV, nVtx);
+	electronDump->fillElectronDumpTree(AllElectrons,iEvent,elecRho,PV,nVtx);
       }	      
 
     if(twoLep_ID){

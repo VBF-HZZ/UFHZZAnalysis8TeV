@@ -76,11 +76,12 @@ class HZZ4LElectronTree
   ~HZZ4LElectronTree();
 
 
-  void fillElectronDumpTree(std::vector<pat::Electron> electrons, const edm::Event& iEvent, double electronRho, const reco::Vertex *&vertex);
+  void fillElectronDumpTree(std::vector<pat::Electron> electrons, const edm::Event& iEvent, double electronRho, const reco::Vertex *&vertex, const int nvtx);
 
  private:
   
   double Event, Run, LumiSect;
+  int nVtx;
   double pT, eta, phi, rho, SIP, pX, pY, pZ;
   int id;
   double relIso, relIsoUncorr, isoNH, isoCH, isoPhot;
@@ -107,6 +108,7 @@ HZZ4LElectronTree::HZZ4LElectronTree(TString treeName,edm::Service<TFileService>
   electronTree->Branch("Event",&Event,"Event/D");
   electronTree->Branch("Run",&Run,"Run/D");
   electronTree->Branch("Lumi",&LumiSect,"Lumi/D");
+  electronTree->Branch("nVtx",&nVtx,"nVtx/I");
   electronTree->Branch("pdgid",&id,"pdgid/I");
   electronTree->Branch("pT",&pT,"pT/D");
   electronTree->Branch("eta",&eta,"eta/D");
@@ -136,7 +138,7 @@ HZZ4LElectronTree::~HZZ4LElectronTree()
 }
 
 
-void HZZ4LElectronTree::fillElectronDumpTree(std::vector<pat::Electron> electrons, const edm::Event& iEvent, double electronRho, const reco::Vertex *&vertex)
+void HZZ4LElectronTree::fillElectronDumpTree(std::vector<pat::Electron> electrons, const edm::Event& iEvent, double electronRho, const reco::Vertex *&vertex, const int nvtx)
 {
 
   using namespace std;
@@ -146,6 +148,7 @@ void HZZ4LElectronTree::fillElectronDumpTree(std::vector<pat::Electron> electron
   Event = iEvent.id().event();
   LumiSect = iEvent.id().luminosityBlock();
   rho = electronRho;
+  nVtx = nvtx;
 
   for(unsigned int i = 0; i < electrons.size(); i++)
     {

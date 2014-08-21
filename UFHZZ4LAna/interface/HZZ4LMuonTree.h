@@ -76,11 +76,12 @@ class HZZ4LMuonTree
   ~HZZ4LMuonTree();
 
 
-  void fillMuonDumpTree(std::vector<pat::Muon> muons, const edm::Event& iEvent, double muonRho, const reco::Vertex *&vertex);
+  void fillMuonDumpTree(std::vector<pat::Muon> muons, const edm::Event& iEvent, double muonRho, const reco::Vertex *&vertex, const int nvtx);
 
  private:
   
   double Event, Run, LumiSect;
+  int nVtx;
   double pT, eta, phi, rho, SIP, pX, pY, pZ;
   int id, pfmuon;
   double relIso, relIsoUncorr, isoNH, isoCH, isoPhot;
@@ -106,6 +107,7 @@ HZZ4LMuonTree::HZZ4LMuonTree(TString treeName,edm::Service<TFileService> fs)
   muonTree->Branch("Event",&Event,"Event/D");
   muonTree->Branch("Run",&Run,"Run/D");
   muonTree->Branch("Lumi",&LumiSect,"Lumi/D");
+  muonTree->Branch("nVtx",&nVtx,"nVtx/I");
   muonTree->Branch("pT",&pT,"pT/D");
   muonTree->Branch("pdgid",&id,"pdgid/I");
   muonTree->Branch("eta",&eta,"eta/D");
@@ -135,7 +137,7 @@ HZZ4LMuonTree::~HZZ4LMuonTree()
 }
 
 
-void HZZ4LMuonTree::fillMuonDumpTree(std::vector<pat::Muon> muons, const edm::Event& iEvent, double muonRho, const reco::Vertex *&vertex)
+void HZZ4LMuonTree::fillMuonDumpTree(std::vector<pat::Muon> muons, const edm::Event& iEvent, double muonRho, const reco::Vertex *&vertex, const int nvtx)
 {
 
   using namespace std;
@@ -145,6 +147,7 @@ void HZZ4LMuonTree::fillMuonDumpTree(std::vector<pat::Muon> muons, const edm::Ev
   Event = iEvent.id().event();
   LumiSect = iEvent.id().luminosityBlock();
   rho = muonRho;
+  nVtx = nvtx;
 
   for(unsigned int i = 0; i < muons.size(); i++)
     {
