@@ -4347,7 +4347,7 @@ void UFHZZ4LAna::setTreeVariables( const edm::Event& iEvent, const edm::EventSet
       isoHcalL1 = selectedElectrons[0].dr03HcalTowerSumEt();
       RelIsoL1 =  helper.pfIso(selectedElectrons[0],elecRho);
       RelIsoUCL1 = helper.pfIso(selectedElectrons[0],0);
-      missingHitsL1 = selectedElectrons[0].gsfTrack()->trackerExpectedHitsInner().numberOfLostHits();
+      missingHitsL1 = selectedElectrons[0].gsfTrack()->trackerExpectedHitsInner().numberOfHits();
       ecalSeedL1 = selectedElectrons[0].ecalDrivenSeed();
  
       idL2 = selectedElectrons[1].pdgId();
@@ -4371,7 +4371,7 @@ void UFHZZ4LAna::setTreeVariables( const edm::Event& iEvent, const edm::EventSet
       isoHcalL2 = selectedElectrons[1].dr03HcalTowerSumEt();
       RelIsoL2 = helper.pfIso(selectedElectrons[1],elecRho);
       RelIsoUCL2 = helper.pfIso(selectedElectrons[1],0);
-      missingHitsL2 = selectedElectrons[1].gsfTrack()->trackerExpectedHitsInner().numberOfLostHits();
+      missingHitsL2 = selectedElectrons[1].gsfTrack()->trackerExpectedHitsInner().numberOfHits();
       ecalSeedL2 = selectedElectrons[1].ecalDrivenSeed();
 
       idL3 = selectedElectrons[2].pdgId();
@@ -4395,7 +4395,7 @@ void UFHZZ4LAna::setTreeVariables( const edm::Event& iEvent, const edm::EventSet
       isoHcalL3 = selectedElectrons[2].dr03HcalTowerSumEt();
       RelIsoL3 = helper.pfIso(selectedElectrons[2],elecRho);
       RelIsoUCL3 = helper.pfIso(selectedElectrons[2],0);
-      missingHitsL3 = selectedElectrons[2].gsfTrack()->trackerExpectedHitsInner().numberOfLostHits();
+      missingHitsL3 = selectedElectrons[2].gsfTrack()->trackerExpectedHitsInner().numberOfHits();
       ecalSeedL3 = selectedElectrons[2].ecalDrivenSeed();
 
       idL4 = selectedElectrons[3].pdgId();
@@ -4419,7 +4419,7 @@ void UFHZZ4LAna::setTreeVariables( const edm::Event& iEvent, const edm::EventSet
       isoHcalL4 = selectedElectrons[3].dr03HcalTowerSumEt();
       RelIsoL4 = helper.pfIso(selectedElectrons[3],elecRho);
       RelIsoUCL4 = helper.pfIso(selectedElectrons[3],0);
-      missingHitsL4 = selectedElectrons[3].gsfTrack()->trackerExpectedHitsInner().numberOfLostHits();
+      missingHitsL4 = selectedElectrons[3].gsfTrack()->trackerExpectedHitsInner().numberOfHits();
       ecalSeedL4 = selectedElectrons[3].ecalDrivenSeed();
 
     }
@@ -4447,7 +4447,7 @@ void UFHZZ4LAna::setTreeVariables( const edm::Event& iEvent, const edm::EventSet
       isoHcalL1 = selectedElectrons[0].dr03HcalTowerSumEt();
       RelIsoL1 = helper.pfIso(selectedElectrons[0],elecRho);
       RelIsoUCL1 = helper.pfIso(selectedElectrons[0],0);
-      missingHitsL1 = selectedElectrons[0].gsfTrack()->trackerExpectedHitsInner().numberOfLostHits();
+      missingHitsL1 = selectedElectrons[0].gsfTrack()->trackerExpectedHitsInner().numberOfHits();
       ecalSeedL1 = selectedElectrons[0].ecalDrivenSeed();
 
       idL2 = selectedElectrons[1].pdgId();
@@ -4471,7 +4471,7 @@ void UFHZZ4LAna::setTreeVariables( const edm::Event& iEvent, const edm::EventSet
       isoHcalL2 = selectedElectrons[1].dr03HcalTowerSumEt();
       RelIsoL2 = helper.pfIso(selectedElectrons[1],elecRho);
       RelIsoUCL2 = helper.pfIso(selectedElectrons[1],0);
-      missingHitsL2 = selectedElectrons[1].gsfTrack()->trackerExpectedHitsInner().numberOfLostHits();
+      missingHitsL2 = selectedElectrons[1].gsfTrack()->trackerExpectedHitsInner().numberOfHits();
       ecalSeedL2 = selectedElectrons[1].ecalDrivenSeed();
 
       idL3 = selectedMuons[0].pdgId();
@@ -4591,7 +4591,7 @@ void UFHZZ4LAna::setTreeVariables( const edm::Event& iEvent, const edm::EventSet
       isoHcalL3 = selectedElectrons[0].dr03HcalTowerSumEt();
       RelIsoL3 = helper.pfIso(selectedElectrons[0],elecRho);
       RelIsoUCL3 = helper.pfIso(selectedElectrons[0],0);
-      missingHitsL3 = selectedElectrons[0].gsfTrack()->trackerExpectedHitsInner().numberOfLostHits();
+      missingHitsL3 = selectedElectrons[0].gsfTrack()->trackerExpectedHitsInner().numberOfHits();
       ecalSeedL3 = selectedElectrons[0].ecalDrivenSeed();
 
       idL4 = selectedElectrons[1].pdgId();
@@ -4615,7 +4615,7 @@ void UFHZZ4LAna::setTreeVariables( const edm::Event& iEvent, const edm::EventSet
       isoHcalL4 = selectedElectrons[1].dr03HcalTowerSumEt();
       RelIsoL4 = helper.pfIso(selectedElectrons[1],elecRho);
       RelIsoUCL4 = helper.pfIso(selectedElectrons[1],0);
-      missingHitsL4 = selectedElectrons[1].gsfTrack()->trackerExpectedHitsInner().numberOfLostHits();
+      missingHitsL4 = selectedElectrons[1].gsfTrack()->trackerExpectedHitsInner().numberOfHits();
       ecalSeedL4 = selectedElectrons[1].ecalDrivenSeed();
 
     } 
