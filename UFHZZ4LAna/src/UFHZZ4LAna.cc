@@ -1255,6 +1255,14 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     //bool skimStep1 = helper.passedPtandEarlyIso(AllMuons, AllElectrons, leadingPtCut, subleadingPtCut, 10000, muonRho, elecRho);
     //bool skimStep2 = helper.passedM2lCut(AllMuons, AllElectrons, 40, 120);
 
+    // debug numberOfLostHits()
+    for (int ielec=0; ielec<(int)AllElectrons.size(); ielec++)
+    {
+      int noflosthits = AllElectrons.at(ielec).gsfTrack()->trackerExpectedHitsInner().numberOfLostHits();
+      int nofhits = AllElectrons.at(ielec).gsfTrack()->trackerExpectedHitsInner().numberOfHits();
+      std::cout << "Hengne:: numberOfLostHits=" << noflosthits << " numberOfHits=" << nofhits  << " diff=" << nofhits-noflosthits << std::endl;
+    }
+
     // no more skim
     //    if(skimStep1 && skimStep2){
       
