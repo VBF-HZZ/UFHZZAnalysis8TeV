@@ -85,7 +85,7 @@ class HZZ4LJetTree
   
   double Event, Run, LumiSect;
   double pT, eta, phi;
-  double pumva;
+  double pumva, csv;
   int pfid, puidflag, puidpass;
   
   TTree *jetTree;
@@ -115,7 +115,7 @@ HZZ4LJetTree::HZZ4LJetTree(TString treeName,edm::Service<TFileService> fs)
   jetTree->Branch("PUIdFlag",&puidflag,"PUIdFlag/I");
   jetTree->Branch("PUIdPass",&puidpass,"PUIdPass/I");
   jetTree->Branch("PUMVA",&pumva,"PUMVA/D");
-
+  jetTree->Branch("CSV",&csv,"CSV/D");
  
 }
 
@@ -155,6 +155,7 @@ void HZZ4LJetTree::fillJetDumpTree(edm::Handle<edm::View<pat::Jet> >  jets, edm:
       pT = correctedjet.pt();
       eta = patjet.eta();
       phi = patjet.phi();
+      csv = correctedjet.bDiscriminator("combinedSecondaryVertexBJetTags");
             
       jetTree->Fill();
 

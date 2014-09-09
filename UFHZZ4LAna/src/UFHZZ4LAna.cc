@@ -4,7 +4,7 @@
 // Class:      UFHZZ4LAna
 // 
 /*
-  class UFHZZ4LAna UFHZZ4LAna.cc UFHZZAnalysis8TeV/UFHZZ4LAna/src/UFHZZ4LAna.cc
+  class UFHZZ4LAna UFHZZ4LAna.cc HZZAnalysis/UFHZZ4LAna/src/UFHZZ4LAna.cc
   
   Description: UF HZZ4L Analysis Analyzer. Works in CMSSW 53X
   
@@ -148,6 +148,11 @@
 #include "UFHZZAnalysis8TeV/UFHZZ4LAna/interface/HZZ4LGENAna.h"
 //VBF Jets
 #include "UFHZZAnalysis8TeV/UFHZZ4LAna/interface/HZZ4LJets.h"
+
+// Jet energy correction
+#include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
+#include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
+#include <vector>
 
 //
 // class declaration
@@ -297,28 +302,30 @@ private:
   //HZZ4LMuonAna muonAna;
 
   //Dump Class
+  /*
   HZZ4LMuonTree *muonDump;
   HZZ4LElectronTree *electronDump;
   HZZ4LPhotonTree *photonDump;
   HZZ4LFinalLepTree *finalLepDump;
   HZZ4LJetTree *jetDump;
-  
+  */  
+
   //Sip Class
-  HZZ4LSipAna sipAna;
+  //HZZ4LSipAna sipAna;
 
   //Iso Class
-  HZZ4LIsoEff *isoEff;
+  //HZZ4LIsoEff *isoEff;
   //HZZ4LIsoEff *isoEff_Z4l;
 
   //Mass Err
   HZZ4LMassErr massErr;
 
   //Sig Eff
-  HZZ4LSigEff *sigEff_4,*sigEff_6,*sigEff_8,*sigEff_9,*sigEff_10,*sigEff_11,*sigEff_12;
+  HZZ4LSigEff *sigEff_4; //*sigEff_6,*sigEff_8,*sigEff_9,*sigEff_10,*sigEff_11,*sigEff_12;
 
   //Zto4L
-  HZZ4LZto4LAna Zto4LAna;
-  HZZ4LZto4LAna *Zto4LAnaOP;
+  //HZZ4LZto4LAna Zto4LAna;
+  //HZZ4LZto4LAna *Zto4LAnaOP;
 
   //GEN
   HZZ4LGENAna genAna;
@@ -335,16 +342,21 @@ private:
   void bookPassedEventTree(TString treeName, TTree *tree);
   void setTreeVariables( const edm::Event&, const edm::EventSetup&, 
 			 std::vector<pat::Muon> selectedMuons, std::vector<pat::Electron> selectedElectrons, std::vector<pat::Jet> selectedVBFJets, std::vector<pat::Jet> correctedVBFJets);
-  void setGENVariables(std::vector<reco::GenParticle> Higgs, 
+  void setGENVariables(const edm::Event& iEvent, std::vector<reco::GenParticle> Higgs, 
 		       std::vector<reco::GenParticle> Zs, 
-		       std::vector<reco::GenParticle> leptonsS1, std::vector<reco::GenParticle> leptonsS3);
-  void setGENMatchedVariables(std::vector<pat::Muon> selectedMuons, std::vector<pat::Electron> selectedElectrons);
+		       std::vector<reco::GenParticle> leptonsS1, std::vector<reco::GenParticle> leptonsS3, std::vector<bool> isFromH, std::vector<bool> isFromW);
+  void setGENMatchedVariables(std::vector<pat::Muon> selectedMuons, std::vector<pat::Electron> selectedElectrons, std::vector<reco::GenParticle> leptonsS1);
 
+  bool mZ1_mZ2(vector<TLorentzVector> v4L, vector<int> idL, vector<double> iso, int& L1, int& L2, int& L3, int& L4, bool isGenIsoCut);
 
   //Variables
   bool notDuplicateEvent;
   ULong64_t Run, Event, LumiSect;
-  double mass4l, mass4e, mass4mu, mass2e2mu, pT4l, massZ1, massZ2;
+  double mass4l, mass4e, mass4mu, mass2e2mu, pT4l, y, massZ1, massZ2;
+
+  double pT4lGEN, massZ2GEN, yGEN;
+  bool passedFullSelectionGEN;
+
   double eta4l, phi4l;
   int idL1, idL2, idL3, idL4;
   double mvaL1, mvaL2, mvaL3, mvaL4;
@@ -363,6 +375,14 @@ private:
   double EL1FSR, EL2FSR, EL3FSR, EL4FSR;
   double EZ1, EZ2, pTZ1, pTZ2, pXZ1, pXZ2;
   double pYZ1, pYZ2, pZZ1, pZZ2;
+
+  bool isFromH_L1, isFromH_L2, isFromH_L3, isFromH_L4;
+  bool isFromH_L1GEN, isFromH_L2GEN, isFromH_L3GEN, isFromH_L4GEN;
+
+  int MomID_L1, MomID_L2, MomID_L3, MomID_L4;
+
+  int GenFS, RecoFS;
+
   int chargeL1, chargeL2, chargeL3, chargeL4;
   double etaL1, etaL2, etaL3, etaL4;
   double phiL1, phiL2, phiL3, phiL4;
@@ -406,15 +426,24 @@ private:
   double GENetaL1_S1, GENetaL2_S1, GENetaL3_S1, GENetaL4_S1;
   double GENphiL1_S1, GENphiL2_S1, GENphiL3_S1, GENphiL4_S1;
 
-  int GENidL1_S3, GENidL2_S3, GENidL3_S3, GENidL4_S3;
-  double GENpTL1_S3, GENpTL2_S3, GENpTL3_S3, GENpTL4_S3;
-  double GENpXL1_S3, GENpXL2_S3, GENpXL3_S3, GENpXL4_S3;
-  double GENpYL1_S3, GENpYL2_S3, GENpYL3_S3, GENpYL4_S3;
-  double GENpZL1_S3, GENpZL2_S3, GENpZL3_S3, GENpZL4_S3;
-  double GENEL1_S3, GENEL2_S3, GENEL3_S3, GENEL4_S3;
+  int GENidL1_S3, GENidL2_S3, GENidL3_S3, GENidL4_S3, GENidL5_S3, GENidL6_S3;
+
+  double GENrecoIsoL1_S3, GENrecoIsoL2_S3, GENrecoIsoL3_S3, GENrecoIsoL4_S3, GENrecoIsoL5_S3, GENrecoIsoL6_S3;
+
+  double GENpTL1_S3, GENpTL2_S3, GENpTL3_S3, GENpTL4_S3, GENpTL5_S3, GENpTL6_S3;
+  double GENpXL1_S3, GENpXL2_S3, GENpXL3_S3, GENpXL4_S3, GENpXL5_S3, GENpXL6_S3;
+  double GENpYL1_S3, GENpYL2_S3, GENpYL3_S3, GENpYL4_S3, GENpYL5_S3, GENpYL6_S3;
+  double GENpZL1_S3, GENpZL2_S3, GENpZL3_S3, GENpZL4_S3, GENpZL5_S3, GENpZL6_S3;
+  double GENEL1_S3, GENEL2_S3, GENEL3_S3, GENEL4_S3, GENEL5_S3, GENEL6_S3;
   int GENchargeL1_S3, GENchargeL2_S3, GENchargeL3_S3, GENchargeL4_S3;
-  double GENetaL1_S3, GENetaL2_S3, GENetaL3_S3, GENetaL4_S3;
-  double GENphiL1_S3, GENphiL2_S3, GENphiL3_S3, GENphiL4_S3;
+  double GENetaL1_S3, GENetaL2_S3, GENetaL3_S3, GENetaL4_S3, GENetaL5_S3, GENetaL6_S3;
+  double GENphiL1_S3, GENphiL2_S3, GENphiL3_S3, GENphiL4_S3, GENphiL5_S3, GENphiL6_S3;
+
+  double GENisoL1_S3, GENisoL2_S3, GENisoL3_S3, GENisoL4_S3, GENisoL5_S3, GENisoL6_S3;
+
+  int GENnL_S3;
+  bool isFromHL1_S3, isFromHL2_S3, isFromHL3_S3, isFromHL4_S3, isFromHL5_S3, isFromHL6_S3;
+  bool isFromWL1_S3, isFromWL2_S3, isFromWL3_S3, isFromWL4_S3, isFromWL5_S3, isFromWL6_S3;
 
   double GENMH, GENM4L, GENMZ1, GENMZ2;
 
@@ -432,6 +461,19 @@ private:
   double phiL1_GENMatched, phiL2_GENMatched, phiL3_GENMatched, phiL4_GENMatched;
   double m4l_GENMatched;
   
+  int nGenJets, nGenJets_dR;
+  int nGenJets4, nGenJets_dR4;
+
+  int nparton, nparton_fiducial;
+  int ntau, ntau_fiducial;
+ 
+  double leading_pT, subleading_pT;
+
+  int isWleptonicDecay, isZleptonicDecay;
+
+  int nRecoJets, nRecoJets_dR;
+  int nVBFJets;
+
   //Calculate Angles
   TLorentzVector HP4;
   TLorentzVector Z1P4, L11P4, L12P4;
@@ -469,9 +511,13 @@ private:
   double mZ1, mZ2, m4l, m4lNoFSR;
   math::XYZTLorentzVector Z1Vec, Z2Vec, HiggsCandVec,HiggsCandVecNoFSR;
   bool twoLep_ID,fourLep_Cleaned;
-  bool passedFullSelection, passedZ4lSelection, passedQCDcut;
 
+  bool passedFullSelection, passedZ4lSelection, passedQCDcut;
+  
+  bool isRecord;
  
+  bool foundZ1;
+
   //Input tags
   edm::InputTag photonSrc_;
   edm::InputTag elecSrc_;
@@ -495,6 +541,9 @@ private:
   double isoCut, earlyIsoCut, sip3dCut;
   double leadingPtCut, subleadingPtCut;
   
+  // pt eta cut on pf jet
+  double pt_cut, eta_cut;
+
   //Counters
   int nEventsTotal,nEventsSkimmed;
   double nEvAfterSkim, nEvPassedHlt, nEvPassedPtCut;
@@ -537,8 +586,6 @@ private:
 
   double nEvWith1FSRZ, nEvWith1FSRZ_4e, nEvWith1FSRZ_4mu, nEvWith1FSRZ_2e2mu;
   double nEvWith2FSRZ, nEvWith2FSRZ_4e, nEvWith2FSRZ_4mu, nEvWith2FSRZ_2e2mu;
-
-
 
   // register to the TFileService
   edm::Service<TFileService> fs;
@@ -586,8 +633,6 @@ private:
 
   bool doVarDump, doBlinding, doFsrRecovery;
 
-
-
   //Resolution
   bool bStudyResolution;
   bool bStudyDiLeptonResolution;
@@ -607,6 +652,13 @@ private:
   double VBFDiJetMass, VBFDeltaEta;
   double FisherDiscrim;
 
+  //jets
+
+  //const int nMax_recoJets = 100;
+
+  double recoJet_pT[100], recoJet_eta[100], recoJet_unc[100];
+
+
   TString tmpEvent;
 
 };
@@ -620,17 +672,19 @@ UFHZZ4LAna::UFHZZ4LAna(const edm::ParameterSet& iConfig) :
   photonSrc_(iConfig.getUntrackedParameter<edm::InputTag>("photonSrc")),
   elecSrc_(iConfig.getUntrackedParameter<edm::InputTag>("electronSrc")),
   muonSrc_(iConfig.getUntrackedParameter<edm::InputTag>("muonSrc")),
-  correctedJetSrc_(iConfig.getUntrackedParameter<edm::InputTag>("correctedJetSrc" )),
+  correctedJetSrc_(iConfig.getUntrackedParameter<edm::InputTag>("correctedJetSrc")),
   jetSrc_(iConfig.getUntrackedParameter<edm::InputTag>("jetSrc" )),
   metSrc_(iConfig.getUntrackedParameter<edm::InputTag>("metSrc" )),
   vertexSrc_(iConfig.getUntrackedParameter<edm::InputTag>("vertexSrc")),
   muRhoSrc_(iConfig.getUntrackedParameter<edm::InputTag>("muRhoSrc")),
   elRhoSrc_(iConfig.getUntrackedParameter<edm::InputTag>("elRhoSrc")),
   mZ1Low(iConfig.getUntrackedParameter<double>("mZ1Low",40)),
-  mZ2Low(iConfig.getUntrackedParameter<double>("mZ2Low",0)),
+  mZ2Low(iConfig.getUntrackedParameter<double>("mZ2Low",12)),
   mZ1High(iConfig.getUntrackedParameter<double>("mZ1High",120)),
   mZ2High(iConfig.getUntrackedParameter<double>("mZ2High",120)),
   m4lLowCut(iConfig.getUntrackedParameter<double>("m4lLowCut",100)),
+  pt_cut(iConfig.getUntrackedParameter<double>("pt_cut",30)),
+  eta_cut(iConfig.getUntrackedParameter<double>("eta_cut",4.7)),
   elecID(iConfig.getUntrackedParameter<std::string>("elecID","mvaNonTrigV0")),
   isMC(iConfig.getUntrackedParameter<bool>("isMC",true)),
   isSignal(iConfig.getUntrackedParameter<bool>("isSignal",false)),
@@ -646,8 +700,8 @@ UFHZZ4LAna::UFHZZ4LAna(const edm::ParameterSet& iConfig) :
   subleadingPtCut(iConfig.getUntrackedParameter<double>("subleadingPtCut",10.0)),
   deltaRmu(iConfig.getUntrackedParameter<double>("deltaRmu",0.3)),
   deltaRe(iConfig.getUntrackedParameter<double>("deltaRe",0.3)),
-  _elecPtCut(iConfig.getUntrackedParameter<double>("_elecPtCut",5)),
-  _muPtCut(iConfig.getUntrackedParameter<double>("_muPtCut",3)),
+  _elecPtCut(iConfig.getUntrackedParameter<double>("_elecPtCut",7)),
+  _muPtCut(iConfig.getUntrackedParameter<double>("_muPtCut",5)),
   tightIdsOnly(iConfig.getUntrackedParameter<bool>("tightIdsOnly",false)),
   looseIdsOnly(iConfig.getUntrackedParameter<bool>("looseIdsOnly",true)),
   reweightForPU(iConfig.getUntrackedParameter<bool>("reweightForPU",true)),
@@ -681,18 +735,16 @@ UFHZZ4LAna::UFHZZ4LAna(const edm::ParameterSet& iConfig) :
   histContainer_["minMass2l_SS_OF"]=fs->make<TH1F>("minMass2l_SS_OF","Minimum Mass of 2 Leptons",1000,0,100);
   histContainer_["minMass2l_OS_OF"]=fs->make<TH1F>("minMass2l_OS_OF","Minimum Mass of 2 Leptons",1000,0,100);
 
-
   passedEventsTree_All = new TTree("passedEvents","passedEvents");
   sigEff_4 = new HZZ4LSigEff("SigEff_4");
+/*
   sigEff_6 = new HZZ4LSigEff("SigEff_6");
   sigEff_8 = new HZZ4LSigEff("SigEff_8");
   sigEff_9 = new HZZ4LSigEff("SigEff_9");
   sigEff_10 = new HZZ4LSigEff("SigEff_10");
   sigEff_11 = new HZZ4LSigEff("SigEff_11");
   sigEff_12 = new HZZ4LSigEff("SigEff_12");
-  
-
-  
+*/  
   //MUST HAVE THESE FOR HIGGS CANDIDATE SELECTION
   RecoFourMuEvent = false;
   RecoFourEEvent = false;
@@ -700,6 +752,9 @@ UFHZZ4LAna::UFHZZ4LAna(const edm::ParameterSet& iConfig) :
   RecoTwoMuTwoEEvent = false;
   eventPassedPtAndIsoCuts = false;
   foundHiggsCandidate = false;
+
+  foundZ1 = false;
+
   twoLooseIsoLeptons = false;
   passedM4lCut = false;
   isIsolated = false;
@@ -711,8 +766,11 @@ UFHZZ4LAna::UFHZZ4LAna(const edm::ParameterSet& iConfig) :
   mZ2 = 0;
   m4l = 0;
   passedFullSelection = false;
+  passedFullSelectionGEN = false;
   passedZ4lSelection = false;
   passedQCDcut = false;
+
+  isRecord = false;
 
   eta4l = 0;  phi4l = 0;
   mvaL1 = 0; mvaL2 = 0; mvaL3 = 0; mvaL4 = 0;
@@ -723,6 +781,14 @@ UFHZZ4LAna::UFHZZ4LAna(const edm::ParameterSet& iConfig) :
   pYL1 = 0;  pYL2 = 0;  pYL3 = 0;  pYL4 = 0;
   pZL1 = 0;  pZL2 = 0;  pZL3 = 0;  pZL4 = 0;
   EL1 = 0;   EL2 = 0;   EL3 = 0;   EL4 = 0;
+
+  isFromH_L1 = false; isFromH_L2 = false; isFromH_L3 = false; isFromH_L4 = false;
+  isFromH_L1GEN = false; isFromH_L2GEN = false; isFromH_L3GEN = false; isFromH_L4GEN = false;
+
+  MomID_L1 = 99999; MomID_L2= 99999; MomID_L3 = 99999; MomID_L4 = 99999;
+
+  GenFS = -1;  RecoFS = -1;
+
   pTL1FSR = 0;  pTL2FSR = 0;  pTL3FSR = 0;  pTL4FSR = 0;
   pXL1FSR = 0;  pXL2FSR = 0;  pXL3FSR = 0;  pXL4FSR = 0;
   pYL1FSR = 0;  pYL2FSR = 0;  pYL3FSR = 0;  pYL4FSR = 0;
@@ -830,7 +896,6 @@ UFHZZ4LAna::UFHZZ4LAna(const edm::ParameterSet& iConfig) :
 
   gen4mu = 0;gen4e = 0;gen2e2mu = 0;
   gen4muPseudo = 0;gen4ePseudo = 0; gen2e2muPseudo = 0; 
-
   
   //Event weight... =1 if nothing is specified in cfg
   eventWeight = 1.0;
@@ -845,9 +910,8 @@ UFHZZ4LAna::UFHZZ4LAna(const edm::ParameterSet& iConfig) :
   leastIso = 0;
   highestSip = 0;
   
-
   //if(interactiveRun){ lumiWeight = new edm::LumiReWeighting( "hists/mcFlat10_Fall11.root", "hists/Data_PU_Fall11.root", "pileup_mc", "pileup" );}
-  //else{ lumiWeight = new edm::LumiReWeighting( "UFHZZAnalysis8TeV/UFHZZ4LAna/hists/mcFlat10_Fall11.root", "UFHZZAnalysis8TeV/UFHZZ4LAna/hists/Data_PU_Fall11.root",
+  //else{ lumiWeight = new edm::LumiReWeighting( "HZZAnalysis/UFHZZ4LAna/hists/mcFlat10_Fall11.root", "HZZAnalysis/UFHZZ4LAna/hists/Data_PU_Fall11.root",
   //					       "pileup_mc", "pileup" ); } 
 
   npv = -1;
@@ -856,9 +920,9 @@ UFHZZ4LAna::UFHZZ4LAna(const edm::ParameterSet& iConfig) :
   PT_weight = 1;
 
 
-  isoEff = new HZZ4LIsoEff("");
+  //isoEff = new HZZ4LIsoEff("");
 
-  Zto4LAnaOP = new HZZ4LZto4LAna("_offPeak");
+  //Zto4LAnaOP = new HZZ4LZto4LAna("_offPeak");
   
   //mela = new Mela(false,8);
   //MEKDwithPDFs = new MEKD(8,"CTEQ6L");
@@ -867,13 +931,14 @@ UFHZZ4LAna::UFHZZ4LAna(const edm::ParameterSet& iConfig) :
   MEMsnoPDFs_noFSR = new MEMs(8);
   MEMsnoPDFs = new MEMs(8);
   
-
+/*
   muonDump = new HZZ4LMuonTree("muonDumpTree",fs);
   electronDump = new HZZ4LElectronTree("electronDumpTree",fs);
   photonDump = new HZZ4LPhotonTree("photonDumpTree",fs);
   finalLepDump = new HZZ4LFinalLepTree("finalLepDumpTree",fs);
   jetDump = new HZZ4LJetTree("jetDumpTree",fs);
- 
+*/ 
+
   counter_4mu = 0;    counter_4e = 0;    counter_2e2mu = 0;    counter_2mu2e = 0;
   LMcounter_4mu = 0;  LMcounter_4e = 0;  LMcounter_2e2mu = 0;  LMcounter_2mu2e = 0;
   Z4lcounter_4mu = 0; Z4lcounter_4e = 0; Z4lcounter_2e2mu = 0; Z4lcounter_2mu2e = 0;
@@ -995,6 +1060,8 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   iEvent.getByLabel("puJetMva","full53xId",puJetIdFlag);  
   //iEvent.getByLabel("puJetMva","fullId",puJetIdFlag);  
   
+  edm::Handle<edm::View<reco::GenJet> > genJets;
+  iEvent.getByLabel("selectedPatJetsNoPU", "genJets", genJets);
 
   // ============= Set Variables ============= //
   
@@ -1005,6 +1072,9 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   RecoTwoMuTwoEEvent = false;
   eventPassedPtAndIsoCuts = false;
   foundHiggsCandidate = false;
+
+  foundZ1 = false;
+
   twoLooseIsoLeptons = false;
   passedM4lCut = false;
   isIsolated = false;
@@ -1015,6 +1085,9 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   passedFullSelection = false;
   passedZ4lSelection = false;
   passedQCDcut = false;
+
+  isRecord = false; 
+
   mZ1 = 0;
   mZ2 = 0;
   m4l = 0;
@@ -1051,15 +1124,24 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   GENetaL1_S1 = -999; GENetaL2_S1 = -999; GENetaL3_S1 = -999; GENetaL4_S1 = -999;
   GENphiL1_S1 = -999; GENphiL2_S1 = -999; GENphiL3_S1 = -999; GENphiL4_S1 = -999;
 
-  GENidL1_S3 = -999; GENidL2_S3 = -999; GENidL3_S3 = -999; GENidL4_S3 = -999;
-  GENpTL1_S3 = -999; GENpTL2_S3 = -999; GENpTL3_S3 = -999; GENpTL4_S3 = -999;
-  GENpXL1_S3 = -999; GENpXL2_S3 = -999; GENpXL3_S3 = -999; GENpXL4_S3 = -999;
-  GENpYL1_S3 = -999; GENpYL2_S3 = -999; GENpYL3_S3 = -999; GENpYL4_S3 = -999;
-  GENpZL1_S3 = -999; GENpZL2_S3 = -999; GENpZL3_S3 = -999; GENpZL4_S3 = -999;
-  GENEL1_S3 = -999; GENEL2_S3 = -999; GENEL3_S3 = -999; GENEL4_S3 = -999;
+  GENrecoIsoL1_S3 = -999; GENrecoIsoL2_S3 = -999; GENrecoIsoL3_S3 = -999; GENrecoIsoL4_S3 = -999; GENrecoIsoL5_S3 = -999; GENrecoIsoL6_S3 = -999;
+
+  GENidL1_S3 = -999; GENidL2_S3 = -999; GENidL3_S3 = -999; GENidL4_S3 = -999; GENidL5_S3 = -999; GENidL6_S3 = -999;
+  GENpTL1_S3 = -999; GENpTL2_S3 = -999; GENpTL3_S3 = -999; GENpTL4_S3 = -999; GENpTL5_S3 = -999; GENpTL6_S3 = -999;
+  GENpXL1_S3 = -999; GENpXL2_S3 = -999; GENpXL3_S3 = -999; GENpXL4_S3 = -999; GENpXL5_S3 = -999; GENpXL6_S3 = -999; 
+  GENpYL1_S3 = -999; GENpYL2_S3 = -999; GENpYL3_S3 = -999; GENpYL4_S3 = -999; GENpYL5_S3 = -999; GENpYL6_S3 = -999;
+  GENpZL1_S3 = -999; GENpZL2_S3 = -999; GENpZL3_S3 = -999; GENpZL4_S3 = -999; GENpZL5_S3 = -999; GENpZL6_S3 = -999;
+  GENEL1_S3 = -999; GENEL2_S3 = -999; GENEL3_S3 = -999; GENEL4_S3 = -999; GENEL5_S3 = -999; GENEL6_S3 = -999;
   GENchargeL1_S3 = -999; GENchargeL2_S3 = -999; GENchargeL3_S3 = -999; GENchargeL4_S3 = -999;
-  GENetaL1_S3 = -999; GENetaL2_S3 = -999; GENetaL3_S3 = -999; GENetaL4_S3 = -999;
-  GENphiL1_S3 = -999; GENphiL2_S3 = -999; GENphiL3_S3 = -999; GENphiL4_S3 = -999;
+  GENetaL1_S3 = -999; GENetaL2_S3 = -999; GENetaL3_S3 = -999; GENetaL4_S3 = -999; GENetaL5_S3 = -999; GENetaL6_S3 = -999;
+  GENphiL1_S3 = -999; GENphiL2_S3 = -999; GENphiL3_S3 = -999; GENphiL4_S3 = -999; GENphiL5_S3 = -999; GENphiL6_S3 = -999;
+
+  GENisoL1_S3 = -999; GENisoL2_S3 = -999; GENisoL3_S3 = -999; GENisoL4_S3 = -999; GENisoL5_S3 = -999; GENisoL6_S3 = -999;
+
+  GENnL_S3 = -999;
+
+  isFromHL1_S3 = false; isFromHL2_S3 = false; isFromHL3_S3 = false; isFromHL4_S3 = false; isFromHL5_S3 = false; isFromHL6_S3 = false;  
+  isFromWL1_S3 = false; isFromWL2_S3 = false; isFromWL3_S3 = false; isFromWL4_S3 = false; isFromWL5_S3 = false; isFromWL6_S3 = false;
 
   GENMH = -999; GENMZ1 = -999; GENMZ2 = -999; GENM4L = -999;
   
@@ -1187,6 +1269,11 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   minDeltR = 1000;
   finalState = -1;
   m3l_soft = 0;
+
+  nGenJets = 0; nRecoJets = 0;
+  nGenJets_dR = 0; nRecoJets_dR = 0;
+  nVBFJets = 0;
+
   // ====================== Do Analysis ======================== //
 
   //Event weighting
@@ -1194,28 +1281,74 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   else if ( !isMC ){eventWeight = 1.0; }
   else{ eventWeight = PU_weight;}
 
-  if(isMC && isSignal)
+  std::vector<reco::GenParticle> Higgs,Zs,leptonsS1,leptonsS3;
+  std::vector<bool> isFromH; std::vector<bool> isFromW;
+
+  isFromH.clear(); isFromW.clear();
+
+  if(isMC)
     {
+
+      //ULong64_t eventId = iEvent.id().event();
+      //if(eventId!=501048) return;
+
+      genAna.fillGenEvent(genParticles,Higgs,Zs,leptonsS1,leptonsS3,isFromH,isFromW);
+      setGENVariables(iEvent, Higgs,Zs,leptonsS1,leptonsS3,isFromH,isFromW);
+
+      //cout<<"isFromH size "<<isFromH.size()<<"; leptonsS3 size "<<leptonsS3.size()<<endl;
+
+      // H->4L exclusively at gen level
+      //if(leptonsS3.size()!=4) return;
+      //if( !isFromH[0] || !isFromH[1] || !isFromH[2] || !isFromH[3]) return;
+/*         
+      int N_H = 0;
+
+      for(unsigned int i = 0; i<isFromH.size(); i++){
+
+          if(isFromH[i]==true) N_H=N_H+1;
+      }
+
+      if(N_H!=4) return;
+*/
+      // Be careful about initialization
+
+      eventType="";
+
       sigEff_4->advanceSigDenCounters(genParticles,eventType,eventWeight);
+
+      GenFS = -1; RecoFS = -1;
+
+      if(eventType=="2e2mu") GenFS = 1; if(eventType=="4e") GenFS = 2; if(eventType=="4mu") GenFS = 3;
+
+/*
+      if(GenFS==2){
+      cout<<"eventType "<<eventType<<endl; }
+
+      cout<<endl;
+
       sigEff_6->advanceSigDenCounters(genParticles,eventType,eventWeight);
       sigEff_8->advanceSigDenCounters(genParticles,eventType,eventWeight);
       sigEff_9->advanceSigDenCounters(genParticles,eventType,eventWeight);	 
       sigEff_10->advanceSigDenCounters(genParticles,eventType,eventWeight);	
       sigEff_11->advanceSigDenCounters(genParticles,eventType,eventWeight);
       sigEff_12->advanceSigDenCounters(genParticles,eventType,eventWeight);
-    }
-
-
+*/ 
+   }
 
   //Check for duplicate events in data
   notDuplicateEvent = true;
   if(!isMC)
     { 
+
+  Run = iEvent.id().run();
+  Event = iEvent.id().event();
+  LumiSect = iEvent.id().luminosityBlock();
+
+
       ULong64_t runId = iEvent.id().run();
       ULong64_t eventId = iEvent.id().event();
       ULong64_t lumiId = iEvent.id().luminosityBlock();
       
-
       for (unsigned int n = 0; n < runVec.size(); n++) 
 	{
 	  if(runId == runVec[n] && lumiId == lumiVec[n] && eventId == eventVec[n]){notDuplicateEvent = false;}
@@ -1229,6 +1362,258 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	}
       
     }
+
+    //isWleptonicDecay = -9999; isZleptonicDecay = -9999;
+
+    nparton = 0; nparton_fiducial = 0;
+
+    leading_pT = -999.0; subleading_pT = -999.0;
+
+    ntau = 0; ntau_fiducial = 0;
+
+    if(isMC)
+     {
+        //genAna.printDecayList(genParticles);
+
+        GENisoL1_S3 = 0.0; GENisoL2_S3 = 0.0; GENisoL3_S3 = 0.0; GENisoL4_S3 = 0.0; GENisoL5_S3 = 0.0; GENisoL6_S3 = 0.0;
+
+        reco::GenParticleCollection::const_iterator genPart;
+
+        double pT[3];
+
+        int index = 0; 
+
+        for(genPart = genParticles->begin(); genPart != genParticles->end(); genPart++)
+         {
+
+          if(genPart->status() == 3 && ( abs(genPart->pdgId())<=5 ||  abs(genPart->pdgId())==15 ) ) // quarks
+           {
+             if( abs(genPart->mother(0)->pdgId())==23 ||  abs(genPart->mother(0)->pdgId())==24 )
+              {
+
+                if(abs(genPart->pdgId())<=5 && abs(genPart->eta())<eta_cut){
+
+                  pT[index] = genPart->pt();
+                  index = index + 1;
+
+                } 
+
+                if(abs(genPart->pdgId())<=5) nparton = nparton + 1;
+
+                if(abs(genPart->pdgId())==15) ntau = ntau + 1;
+
+                if(genPart->pt()>pt_cut && abs(genPart->eta())<eta_cut){
+
+                  if(abs(genPart->pdgId())<=5)  nparton_fiducial = nparton_fiducial + 1;
+
+                  if(abs(genPart->pdgId())==15) ntau_fiducial = ntau_fiducial + 1;
+
+                }
+
+              } 
+           }
+
+/*
+          if(genPart->status() == 3 && abs(genPart->pdgId())==24){
+
+           if(abs(genPart->daughter(0)->pdgId())>10) isWleptonicDecay = 1;
+           else isWleptonicDecay = 0;  
+
+          }
+
+          if(genPart->status() == 3 && abs(genPart->pdgId())==23){
+
+           if(abs(genPart->daughter(0)->pdgId())>10 && abs(genPart->mother(0)->pdgId())!=25)  isZleptonicDecay = 1;
+           else isZleptonicDecay = 0;
+
+          }
+*/
+
+          if( genPart->status() != 1 ) continue; // stable particles only
+          if(abs(genPart->pdgId())==11 || abs(genPart->pdgId())==12 || abs(genPart->pdgId())==13 || abs(genPart->pdgId())==14 || abs(genPart->pdgId())==16 ) continue;
+          // not electron, muon, three neutrinos
+
+          double dRvL1 = deltaR(GENetaL1_S3, GENphiL1_S3, genPart->eta(), genPart->phi());
+          double dRvL2 = deltaR(GENetaL2_S3, GENphiL2_S3, genPart->eta(), genPart->phi());
+          double dRvL3 = deltaR(GENetaL3_S3, GENphiL3_S3, genPart->eta(), genPart->phi());
+          double dRvL4 = deltaR(GENetaL4_S3, GENphiL4_S3, genPart->eta(), genPart->phi());
+
+          //if(abs(genPart->charge())==0 && genPart->pt()<0.5) continue; // cut on photon and neural hadron's pt
+
+          //veto
+          if(dRvL1<0.4 && (abs(GENidL1_S3)==11 || (abs(GENidL1_S3)==13 && abs(genPart->charge())!=0) || (abs(GENidL1_S3)==13 && abs(genPart->charge())==0 && genPart->pt()>0.5) ) )
+          { GENisoL1_S3 = GENisoL1_S3 + genPart->pt(); }  
+          if(dRvL2<0.4 && (abs(GENidL2_S3)==11 || (abs(GENidL2_S3)==13 && abs(genPart->charge())!=0) || (abs(GENidL2_S3)==13 && abs(genPart->charge())==0 && genPart->pt()>0.5) ) ) 
+          { GENisoL2_S3 = GENisoL2_S3 + genPart->pt(); } 
+          if(dRvL3<0.4 && (abs(GENidL3_S3)==11 || (abs(GENidL3_S3)==13 && abs(genPart->charge())!=0) || (abs(GENidL3_S3)==13 && abs(genPart->charge())==0 && genPart->pt()>0.5) ) ) 
+          { GENisoL3_S3 = GENisoL3_S3 + genPart->pt(); } 
+          if(dRvL4<0.4 && (abs(GENidL4_S3)==11 || (abs(GENidL4_S3)==13 && abs(genPart->charge())!=0) || (abs(GENidL4_S3)==13 && abs(genPart->charge())==0 && genPart->pt()>0.5) ) )
+          { GENisoL4_S3 = GENisoL4_S3 + genPart->pt(); } 
+
+          if(leptonsS3.size() >= 5) {
+
+            double dRvL5 = deltaR(GENetaL5_S3, GENphiL5_S3, genPart->eta(), genPart->phi());
+            if(dRvL5<0.4 && (abs(GENidL5_S3)==11 || (abs(GENidL5_S3)==13 && abs(genPart->charge())!=0) || (abs(GENidL5_S3)==13 && abs(genPart->charge())==0 && genPart->pt()>0.5) ) ) 
+            { GENisoL5_S3 = GENisoL5_S3 + genPart->pt(); } 
+
+          }
+
+          if(leptonsS3.size() >= 6) {
+
+            double dRvL6 = deltaR(GENetaL6_S3, GENphiL6_S3, genPart->eta(), genPart->phi());
+            if(dRvL6<0.4 && (abs(GENidL6_S3)==11 || (abs(GENidL6_S3)==13 && abs(genPart->charge())!=0) || (abs(GENidL6_S3)==13 && abs(genPart->charge())==0 && genPart->pt()>0.5) ) ) 
+            { GENisoL6_S3 = GENisoL6_S3 + genPart->pt(); } 
+
+          } 
+
+        }
+
+       if(index==1) leading_pT = pT[0];
+          
+       if(index==2 && pT[0]>pT[1]) { leading_pT = pT[0]; subleading_pT = pT[1];}
+       else            { leading_pT = pT[1]; subleading_pT = pT[0];}
+
+       cout<<"leading_pT "<<leading_pT<<" subleading_pT "<<subleading_pT<<endl;
+
+       // select events at gen level
+
+       edm::View<reco::GenJet>::const_iterator genjet;
+
+       nGenJets = 0; nGenJets_dR = 0;
+       nGenJets4 = 0; nGenJets_dR4 = 0;
+
+        if(leptonsS3.size()>=4){
+
+         for(genjet = genJets->begin(); genjet != genJets->end(); genjet++)
+          {
+
+             double pt = genjet->pt();  double eta = genjet->eta();
+             if(pt<pt_cut || abs(eta)>eta_cut) continue;
+
+             nGenJets4 = nGenJets4 + 1;
+
+             bool inDR = false;
+             for(unsigned int i = 0; i<leptonsS3.size(); i++){
+                 double dR = deltaR(leptonsS3[i].eta(), leptonsS3[i].phi(), genjet->eta(),genjet->phi());
+                 if(dR<0.5) {inDR=true; break;}
+             }
+
+            // count number of jets which no prompt leptons are inside its cone
+            if(!inDR) { nGenJets_dR4 = nGenJets_dR4 + 1; }
+
+          }
+        }
+     
+       passedFullSelectionGEN = false;
+
+       if(leptonsS3.size()>=4){
+
+            vector<TLorentzVector> v4L; vector<int> idL; vector<double> iso; vector<bool> isFromHiggs;
+            v4L.clear(); idL.clear(); iso.clear();
+
+            int L1 = 10; int L2 = 10; int L3 = 10; int L4 = 10;
+
+            TLorentzVector v4L1(GENpXL1_S3,GENpYL1_S3,GENpZL1_S3,GENEL1_S3);
+            TLorentzVector v4L2(GENpXL2_S3,GENpYL2_S3,GENpZL2_S3,GENEL2_S3);
+            TLorentzVector v4L3(GENpXL3_S3,GENpYL3_S3,GENpZL3_S3,GENEL3_S3);
+            TLorentzVector v4L4(GENpXL4_S3,GENpYL4_S3,GENpZL4_S3,GENEL4_S3);
+            TLorentzVector v4L5(GENpXL5_S3,GENpYL5_S3,GENpZL5_S3,GENEL5_S3);
+            TLorentzVector v4L6(GENpXL6_S3,GENpYL6_S3,GENpZL6_S3,GENEL6_S3);                     
+
+            v4L.push_back(v4L1); v4L.push_back(v4L2); v4L.push_back(v4L3); v4L.push_back(v4L4); 
+            if(GENnL_S3>=5) v4L.push_back(v4L5); 
+            if(GENnL_S3==6) v4L.push_back(v4L6);
+
+            idL.push_back(GENidL1_S3); idL.push_back(GENidL2_S3); idL.push_back(GENidL3_S3); idL.push_back(GENidL4_S3);  
+            if(GENnL_S3>=5) idL.push_back(GENidL5_S3);
+            if(GENnL_S3==6) idL.push_back(GENidL6_S3); 
+
+            iso.push_back(GENisoL1_S3); iso.push_back(GENisoL2_S3); iso.push_back(GENisoL3_S3); iso.push_back(GENisoL4_S3); 
+            if(GENnL_S3>=5) iso.push_back(GENisoL5_S3);
+            if(GENnL_S3==6) iso.push_back(GENisoL6_S3);
+
+            isFromHiggs.push_back(isFromHL1_S3); isFromHiggs.push_back(isFromHL2_S3); isFromHiggs.push_back(isFromHL3_S3); isFromHiggs.push_back(isFromHL4_S3); 
+            if(GENnL_S3>=5) isFromHiggs.push_back(isFromHL5_S3);
+            if(GENnL_S3==6) isFromHiggs.push_back(isFromHL6_S3);
+
+            bool passedMassOS = true; bool passedElMuDeltaR = true; bool passedDeltaR = true;
+            for(unsigned int i = 0; i<v4L.size(); i++)
+             {
+               for(unsigned int j = i+1; j<v4L.size(); j++)
+                {
+                  if(idL[i]*idL[j]<0)
+                   {
+                    TLorentzVector mll = v4L[i]+v4L[j];
+                    if(mll.M()<=4) { passedMassOS = false; break; }
+                   }
+
+                  if(abs(idL[i]) != abs(idL[j]))
+                   {
+                    double deltaR = v4L[i].DeltaR(v4L[j]);
+                    if(deltaR<=0.02) { passedElMuDeltaR = false; break; }
+                   }
+
+                    double deltaRll = v4L[i].DeltaR(v4L[j]);
+                    if(deltaRll<=0.02) { passedDeltaR = false; break; }
+
+               }
+            }            
+
+           bool isGenIsoCut = true;
+           bool findHiggs = false;
+
+           if(passedMassOS==false || passedElMuDeltaR==false || passedDeltaR==false) findHiggs=false;
+           else findHiggs = mZ1_mZ2(v4L, idL, iso, L1, L2, L3, L4, isGenIsoCut);
+ 
+           passedFullSelectionGEN = findHiggs;
+           if(findHiggs) {massZ2GEN = (v4L[L3]+v4L[L4]).M(); pT4lGEN = (v4L[L1]+v4L[L2]+v4L[L3]+v4L[L4]).Pt();
+
+                          double energy = (v4L[L1]+v4L[L2]+v4L[L3]+v4L[L4]).Energy();
+                          double pz = (v4L[L1]+v4L[L2]+v4L[L3]+v4L[L4]).Pz();
+                   
+                          yGEN = 0.5*log((energy-pz)/(energy+pz)); 
+
+             }
+
+           isFromH_L1GEN = isFromHiggs[L1]; isFromH_L2GEN = isFromHiggs[L2]; 
+           isFromH_L3GEN = isFromHiggs[L3]; isFromH_L4GEN = isFromHiggs[L4];
+
+           for(genjet = genJets->begin(); genjet != genJets->end(); genjet++)
+           {
+
+               double pt = genjet->pt();  double eta = genjet->eta();
+               if(pt<pt_cut || abs(eta)>eta_cut) continue;
+
+               nGenJets = nGenJets + 1;
+
+               if(findHiggs==true){
+
+                 //cout<<"L1 "<<L1<<" L2 "<<L2<<" L3 "<<L3<<" L4 "<<L4<<endl; 
+
+                 bool inDR = false; int N_gen_S3 = leptonsS3.size();
+                 for(int i = 0; i<N_gen_S3; i++){
+
+                    //if(i!=L1 && i!=L2 && i!=L3 && i!=L4) continue;
+                    if(i==L1 || i==L2 || i==L3 || i==L4) {
+             
+                      double dR = deltaR(leptonsS3[i].eta(), leptonsS3[i].phi(), genjet->eta(),genjet->phi());
+
+                      if(dR<0.5) {inDR=true; break;}
+
+                    }
+                }
+
+              // count number of jets which no prompt leptons are inside its cone
+              if(!inDR) { nGenJets_dR = nGenJets_dR + 1; }
+
+              }
+              else{ nGenJets_dR=nGenJets; }
+
+         }
+
+      }
+
+   }
 
 
   if( notDuplicateEvent && !vertex->empty()){
@@ -1259,17 +1644,65 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     recoMuons = helper.goodMuons2012_noIso(AllMuons,_muPtCut,PV);
     recoElectrons = helper.goodElectrons2012_noIso(AllElectrons,_elecPtCut,elecID,PV,iEvent);
 
-    if( (recoMuons.size() + recoElectrons.size()) >= 2 ){twoLep_ID = true;}
+    twoLep_ID = false; 
+    if( (recoMuons.size() + recoElectrons.size()) >=2  ){twoLep_ID = true;}
+    
+    // associate gen and reco level lepton to find correlation between gen and reco isolation
 
+    double dR = 9999.0;
+
+    double recoIso[leptonsS3.size()];
+
+    for(unsigned int i = 0; i<leptonsS3.size(); i++){
+
+        recoIso[i] = -9999.0; // initialize the isolation
+        dR = 0.4;
+
+      for(unsigned int j = 0; j<recoMuons.size(); j++){
+
+         if(recoMuons[j].pdgId()==leptonsS3[i].pdgId()){
+
+            double dR_temp = deltaR(recoMuons[j].eta(), recoMuons[j].phi(), leptonsS3[i].eta(), leptonsS3[i].phi()); 
+            if(dR_temp<dR){ recoIso[i] = helper.pfIso(recoMuons[j],muonRho);  }
+          }
+
+      }
+
+    }   
+
+    for(unsigned int i = 0; i<leptonsS3.size(); i++){
+
+        dR = 0.4;
+
+      for(unsigned int j = 0; j<recoElectrons.size(); j++){
+
+         if(recoElectrons[j].pdgId()==leptonsS3[i].pdgId()){
+
+            double dR_temp = deltaR(recoElectrons[j].eta(), recoElectrons[j].phi(), leptonsS3[i].eta(), leptonsS3[i].phi());
+            if(dR_temp<dR){ recoIso[i] = helper.pfIso(recoElectrons[j],elecRho);  }
+          }
+
+      }
+
+    }
+ 
+    if(leptonsS3.size()>=4){
+
+      GENrecoIsoL1_S3 = recoIso[0]; GENrecoIsoL2_S3 = recoIso[1]; GENrecoIsoL3_S3 = recoIso[2]; GENrecoIsoL4_S3 = recoIso[3];
+      if(leptonsS3.size()>=5)  GENrecoIsoL5_S3 = recoIso[4];
+      if(leptonsS3.size()>=6)  GENrecoIsoL6_S3 = recoIso[5]; 
+    }
+
+/*
     if(doVarDump)
       {
 	muonDump->fillMuonDumpTree(AllMuons,iEvent,muonRho,PV);
 	electronDump->fillElectronDumpTree(AllElectrons,iEvent,elecRho,PV);
       }	      
-
+*/
     if(twoLep_ID){
 
-      // Mass Resolution Study
+     // Mass Resolution Study
       if(bStudyResolution)
 	{
 	  vector< pat::Muon > recoIsoMuons;
@@ -1282,9 +1715,40 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  if(bStudyDiLeptonResolution) { DiLepReso->fillHistograms(hContainer_, hContainer2D_, recoIsoElectrons, recoIsoMuons, eventWeight, !isMC); }
 	}
 
-	
+//      cout<<"two tight ID"<<endl;
       nEvAfterId += eventWeight;
-      if(isSignal) sigEff_4->advanceSigNumCounters_ID(eventType,eventWeight);
+      sigEff_4->advanceSigNumCounters_ID(eventType, eventWeight); 
+
+
+      bool fourLep_ID = false;
+      if( (recoMuons.size() + recoElectrons.size()) >= 4 ) {fourLep_ID = true;}  
+//      cout<<"four tight ID"<<endl;
+      if(fourLep_ID){
+     
+        sigEff_4->advanceSigNumCounters_ID4(eventType, eventWeight);
+
+      ////////////////////////////     
+
+      bool properLep_ID = false; int Nmm = 0; int Nmp = 0; int Nem = 0; int Nep = 0;
+      for(unsigned int i =0; i<recoMuons.size(); i++)
+      {
+         if(recoMuons[i].pdgId()<0) Nmm = Nmm+1;
+         if(recoMuons[i].pdgId()>0) Nmp = Nmp+1;
+      }
+      for(unsigned int i =0; i<recoElectrons.size(); i++) 
+      {
+         if(recoElectrons[i].pdgId()<0) Nem = Nem+1;
+         if(recoElectrons[i].pdgId()>0) Nep = Nep+1;
+      }
+
+      if(Nmm>=2 && Nmp>=2) properLep_ID = true; //4mu
+      if(Nem>=2 && Nep>=2) properLep_ID = true; //4mu
+      if(Nmm>0 && Nmp>0 && Nem>0 && Nep>0) properLep_ID = true; //2e2mu
+
+// four proper charge flavor combination
+      if(properLep_ID){     
+
+        sigEff_4->advanceSigNumCounters_properID4(eventType, eventWeight);
 
       //Plot Min Mass(2l)
       bool sameFlavorMin = false, sameSignMin = false;
@@ -1330,10 +1794,7 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    }
 	}	   
 
-      if(doVarDump) photonDump->fillPhotonDumpTree(fsrPhotons,deltaRVec,iEvent,PV);
-
-
-
+//      if(doVarDump) photonDump->fillPhotonDumpTree(fsrPhotons,deltaRVec,iEvent,PV);
 
       // =========== BEGIN Extra Event Info =========== //
 
@@ -1458,7 +1919,7 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	//VBF Jets
 	vector<pat::Jet> selectedVBFJets, correctedVBFJets;
 	double tempDeltaR = -999;
-	if(doVarDump) jetDump->fillJetDumpTree(jets,correctedJets,iEvent);
+//	if(doVarDump) jetDump->fillJetDumpTree(jets,correctedJets,iEvent);
 
 	for(unsigned int i = 0; i < jets->size(); ++i) 
 	  {
@@ -1482,7 +1943,9 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 			if (tempDeltaR < 0.5) isDeltaR = false;
 		      }
 		    
-		    if(correctedJet.pt() > 30 && fabs(patjet.eta()) < 4.7 && isDeltaR)
+                    if(correctedJet.pt() > pt_cut && fabs(patjet.eta()) < eta_cut) nRecoJets = nRecoJets + 1;
+
+		    if(correctedJet.pt() > pt_cut && fabs(patjet.eta()) < eta_cut && isDeltaR)
 		      {
 			selectedVBFJets.push_back(patjet);
 			correctedVBFJets.push_back(correctedJet);
@@ -1492,9 +1955,10 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	      }
 	  }
       
-      
+            //Set All the Variables for Saved Trees --- must be done after variables are available ( JUST after Z1 Z2, Higgs are formed )
+            setTreeVariables(iEvent, iSetup, selectedMuons, selectedElectrons, selectedVBFJets, correctedVBFJets);
 
-
+        if(RecoFourMuEvent) RecoFS = 3; if(RecoFourEEvent) RecoFS = 2; if(RecoTwoMuTwoEEvent || RecoTwoETwoMuEvent) RecoFS = 1;
 
 	thetaZ2 = Z2Vec.Theta();
 	etaZ2 = Z2Vec.Eta(); 
@@ -1506,8 +1970,8 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 	  if(isSignal)
 	    {
-	      if(RecoFourMuEvent) sigEff_4->advanceSigNumCounters_PT2010(eventType,"reco4mu",eventWeight);
-	      if(RecoFourEEvent) sigEff_4->advanceSigNumCounters_PT2010(eventType,"reco4e",eventWeight);
+	      if(RecoFourMuEvent) sigEff_4->advanceSigNumCounters_PT2010(eventType,"reco4mu",eventWeight); 
+	      if(RecoFourEEvent) sigEff_4->advanceSigNumCounters_PT2010(eventType,"reco4e",eventWeight); 
 	      if(RecoTwoMuTwoEEvent || RecoTwoETwoMuEvent) sigEff_4->advanceSigNumCounters_PT2010(eventType,"reco2e2mu",eventWeight);
 	    }
 
@@ -1516,6 +1980,7 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	  if( RecoFourEEvent ) nEvPassedPtCut2_4e += eventWeight;
 	  if( RecoTwoETwoMuEvent || RecoTwoMuTwoEEvent ) nEvPassedPtCut2_2e2mu += eventWeight;
 		  
+          fourLep_Cleaned  = false;
 	  // ========= m2l > 4 cut ========= //
 	  fourLep_Cleaned = helper.passedM2lCut_OS(selectedMuons,selectedElectrons,Z2Vec.M()< 12 ?0:4 ,10000);
 	  passedQCDcut = helper.passedM2lCut_OS(selectedMuons,selectedElectrons,4,10000);
@@ -1602,7 +2067,7 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 	      
 	    //Set All the Variables for Saved Trees --- must be done after variables are available
-	    setTreeVariables(iEvent, iSetup, selectedMuons, selectedElectrons, selectedVBFJets, correctedVBFJets);
+	    //setTreeVariables(iEvent, iSetup, selectedMuons, selectedElectrons, selectedVBFJets, correctedVBFJets);
 
 	    //Calculate Angles
 	    HP4.SetPxPyPzE(HiggsCandVec.Px(), HiggsCandVec.Py(), HiggsCandVec.Pz(), HiggsCandVec.E() );
@@ -1715,6 +2180,7 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
 	    MEMsnoPDFs->computeMEs(P4s,tmpIDs);
 	    interferenceWeight = MEMsnoPDFs->getMELAWeight();
+/*
 	    MEMsnoPDFs->computePm4l(P4s,tmpIDs, MEMNames::kNone, pdfSigM4l, pdfBkgM4l);
 	    MEMsnoPDFs->computePm4l(P4s,tmpIDs, MEMNames::kScaleUp, pdfSigM4l_ScaleUp, pdfBkgM4l_ScaleUp);
 	    MEMsnoPDFs->computePm4l(P4s,tmpIDs, MEMNames::kResolUp, pdfSigM4l_ResUp, pdfBkgM4l_ResUp);
@@ -1784,7 +2250,7 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	    MEMsnoPDFs_noFSR->computeKD(k2mplus_qqbar,kJHUGen, kqqZZ, kMCFM, &MEMs::probRatio, JHUKD_qqh2P_ZZ_noPDF_noFSR,JHU_ME_qqh2P_noPDF_noFSR,JHU_ME_ZZ_noPDF_noFSR);
 	    MEMsnoPDFs_noFSR->computeKD(k2mplus_gg,   kJHUGen, kqqZZ, kMCFM, &MEMs::probRatio, JHUKD_ggh2P_ZZ_noPDF_noFSR,JHU_ME_ggh2P_noPDF_noFSR,JHU_ME_ZZ_noPDF_noFSR);
 	    
-
+*/
 
 
 	    Z4lmaxP = helper.largestLepMomentum(L11P4,L12P4,L21P4,L22P4);
@@ -1820,17 +2286,12 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		      }
 		  }
 		if(isMC)
-		  {
-		    std::vector<reco::GenParticle> Higgs,Zs,leptonsS1,leptonsS3;
-		    genAna.fillGenEvent(genParticles,Higgs,Zs,leptonsS1,leptonsS3);
-		    setGENVariables(Higgs,Zs,leptonsS1,leptonsS3);
-		    setGENMatchedVariables(selectedMuons,selectedElectrons);
+	          {
+		    setGENMatchedVariables(selectedMuons,selectedElectrons, leptonsS1);
 		  }
-		passedEventsTree_All->Fill();
+		//passedEventsTree_All->Fill();
 		  
 	      }
-
-
 
 	    if(passedM4lCut && isSignal)
 	      {
@@ -1842,6 +2303,7 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		    if(RecoTwoETwoMuEvent || RecoTwoMuTwoEEvent){sigEff_4->advanceSigNumCounters_FINAL(eventType,"reco2e2mu",eventWeight,selectedMuons,selectedElectrons);}
 		  }
 		  
+/*
 		if(Z2Vec.M() > 6)
 		  {
 		    if(RecoFourMuEvent){sigEff_6->advanceSigNumCounters_FINAL(eventType,"reco4mu",eventWeight,selectedMuons,selectedElectrons);}
@@ -1883,6 +2345,8 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		    if(RecoFourEEvent){sigEff_12->advanceSigNumCounters_FINAL(eventType,"reco4e",eventWeight,selectedMuons,selectedElectrons);}
 		    if(RecoTwoETwoMuEvent || RecoTwoMuTwoEEvent){sigEff_12->advanceSigNumCounters_FINAL(eventType,"reco2e2mu",eventWeight,selectedMuons,selectedElectrons);}
 		  }
+*/
+
 	      }
 	      
 
@@ -1895,8 +2359,6 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		    if(RecoFourEEvent) Z4lcounter_4e += eventWeight;
 		    if(RecoTwoMuTwoEEvent) Z4lcounter_2mu2e += eventWeight;
 		    if(RecoTwoETwoMuEvent) Z4lcounter_2e2mu += eventWeight;
-		      
-		    m3l_soft = helper.M3lSoftestLep(L11P4,L12P4,L21P4,L22P4);
 		    //Zto4LAna.fillZto4LHistograms(histContainer_, selectedMuons, selectedElectrons,eventWeight);
 		      
 		  }
@@ -1914,14 +2376,13 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	      {
 		if( passedM4lCut)
 		  {
-		    if(doVarDump) finalLepDump->fillFinalLepDumpTree(selectedMuons,selectedElectrons,iEvent,muonRho,elecRho,PV);
-		      
-		    sipAna.advanceSipCounters(highestSip,eventWeight);
+//		    if(doVarDump) finalLepDump->fillFinalLepDumpTree(selectedMuons,selectedElectrons,iEvent,muonRho,elecRho,PV);		      
+//		    sipAna.advanceSipCounters(highestSip,eventWeight);
 
 		    //Step Plots
 		    if(isMC || !doBlinding)
 		      {
-			nEvAfterM4lCut += eventWeight;
+			nEvAfterM4lCut += eventWeight; isRecord = true;
 			if( RecoFourMuEvent ){nEvAfterM4lCut_4mu += eventWeight;}
 			if( RecoFourEEvent  ){nEvAfterM4lCut_4e += eventWeight; }
 			if( RecoTwoETwoMuEvent || RecoTwoMuTwoEEvent ){nEvAfterM4lCut_2e2mu += eventWeight; }
@@ -2007,7 +2468,7 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 		      
 		      
 		    //Iso Efficiency
-		    if(isMC) isoEff->advanceIsoCounters(m4l, leastIso1, leastIso2, isSignal,eventWeight);
+		    //if(isMC) isoEff->advanceIsoCounters(m4l, leastIso1, leastIso2, isSignal,eventWeight);
 		      
 		    if( m4l >180 )
 		      {
@@ -2047,20 +2508,20 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	      
 	  }//fourLep_Cleaned
 	    
-	}//passedPtCuts
+	 }//passedPtCuts
 	  
-      }//if HC
+       }//if HC
 	
+      }// if 4 properID 
+
+     }// if 4ID
+
     }//if ID
       
   }//notDuplicate
 
+  passedEventsTree_All->Fill();
   
-
-
-  
-
-
 
  #ifdef THIS_IS_AN_EVENT_EXAMPLE
      Handle<ExampleData> pIn;
@@ -2082,25 +2543,16 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    using namespace std;
    using namespace pat;
 
-
-
    bookStepPlots();
 
    bookPassedEventTree("passedEvents", passedEventsTree_All);
 
    bookResolutionHistograms();
    //muonAna.bookMuonHistograms(fs,histContainer_);
-   sipAna.bookSipHistograms(fs,histContainer_);
+   //sipAna.bookSipHistograms(fs,histContainer_);
    //sigEff->bookSigEffHistograms(fs);
-   sigEff_4->makeSigEffTree();
-   sigEff_6->makeSigEffTree();
-   sigEff_8->makeSigEffTree();
-   sigEff_9->makeSigEffTree();
-   sigEff_10->makeSigEffTree();
-   sigEff_11->makeSigEffTree();
-   sigEff_12->makeSigEffTree();
-   isoEff->bookIsoHistograms(fs);
-   Zto4LAna.bookZto4LHistograms(fs,histContainer_);
+   //isoEff->bookIsoHistograms(fs);
+   //Zto4LAna.bookZto4LHistograms(fs,histContainer_);
    //Zto4LAnaOP->bookZto4LHistograms(fs,histContainer_);
 
    if(bStudyResolution){
@@ -2120,6 +2572,15 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
    using namespace std;
    using namespace pat;
 
+   sigEff_4->makeSigEffTree();
+/*
+   sigEff_6->makeSigEffTree();
+   sigEff_8->makeSigEffTree();
+   sigEff_9->makeSigEffTree();
+   sigEff_10->makeSigEffTree();
+   sigEff_11->makeSigEffTree();
+   sigEff_12->makeSigEffTree();
+*/
 
    gen4mu = sigEff_4->getNGen4mu();
    gen4e = sigEff_4->getNGen4e();
@@ -2206,9 +2667,9 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
    fillStepPlots();
    
-   sipAna.plotSipHistograms(histContainer_);
+   //sipAna.plotSipHistograms(histContainer_);
    //sigEff->plotSigEffHistograms();
-   isoEff->plotIsoHistograms(scaleWeight);
+   //isoEff->plotIsoHistograms(scaleWeight);
    //Zto4LAna.plotZto4LHistograms(histContainer_ , weightEvents,scaleWeight);
    //Zto4LAnaOP->plotZto4LHistograms(histContainer_ , weightEvents,scaleWeight);
 
@@ -2337,8 +2798,6 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	       
 	       bool foundZ1 = findZ(fsrPhotons, deltaRVec, candMuons[i], candMuons[j],999, takenPhotMu1, tmpAssociatedPh, tmpZVec, tmpPhotVec, foundPhot);
 
-
-
 	       dm = abs(Zmass-tmpZVec.M());
 
 
@@ -2366,7 +2825,6 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 }
      }
 
-
    foundPhot = false;
    tmpAssociatedPh = 999;
    for( int i = 0; i < nCandElectrons; i++ )
@@ -2377,9 +2835,6 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	   if( candElectrons[i].charge() * candElectrons[j].charge() == -1 )
 	     {
 	       bool foundZ1 = findZ(fsrPhotons, deltaRVec, candElectrons[i], candElectrons[j],999, takenPhotEl1,tmpAssociatedPh, tmpZVec, tmpPhotVec,foundPhot);
-
-
-
 
 	       dm = abs(Zmass-tmpZVec.M());
 
@@ -2405,14 +2860,28 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 }
      }
 
-
+   bool isFromZ_L1 = false; bool isFromZ_L2 = false;   
    
+   //cout<<"search for Z1 "<<endl;
+
    // Keep track of whether Z1 is Muons or Electrons
    // Assign a tmp variable for pT comparisons
    if( Z1isMuons )
      {
        takenZ1_1   = takenMu_1; takenZ1_2   = takenMu_2;
        takenMuTmp1 = takenZ1_1; takenMuTmp2 = takenZ1_2;
+
+      for(unsigned int j = 0; j < candMuons[takenMuTmp1].genParticleRefs().size(); j++)
+        {
+          if( abs(candMuons[takenMuTmp1].genParticle(j)->pdgId()) == 13 && abs(candMuons[takenMuTmp1].genParticle(j)->status()) == 1 && genAna.IsMotherH(candMuons[takenMuTmp1].genParticle(j)) )
+          { isFromZ_L1 = true; }
+        }
+      for(unsigned int j = 0; j < candMuons[takenMuTmp2].genParticleRefs().size(); j++)
+        {
+          if( abs(candMuons[takenMuTmp2].genParticle(j)->pdgId()) == 13 && abs(candMuons[takenMuTmp2].genParticle(j)->status()) == 1 && genAna.IsMotherH(candMuons[takenMuTmp2].genParticle(j)) ) 
+          { isFromZ_L2 = true; }
+        }
+
        if( foundPhotZMu1 )
 	 {
 	   FSR_Z1 = true; 
@@ -2439,6 +2908,19 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
      {
        takenZ1_1  = takenE_1;  takenZ1_2  = takenE_2;
        takenETmp1 = takenZ1_1; takenETmp2 = takenZ1_2;
+
+      for(unsigned int j = 0; j < candElectrons[takenETmp1].genParticleRefs().size(); j++)
+        {
+          if( abs(candElectrons[takenETmp1].genParticle(j)->pdgId()) == 11 && abs(candElectrons[takenETmp1].genParticle(j)->status()) == 1 && genAna.IsMotherH(candElectrons[takenETmp1].genParticle(j)) ) 
+          { isFromZ_L1 = true; }
+        }
+
+      for(unsigned int j = 0; j < candElectrons[takenETmp2].genParticleRefs().size(); j++)
+        {
+          if( abs(candElectrons[takenETmp2].genParticle(j)->pdgId()) == 11 && abs(candElectrons[takenETmp2].genParticle(j)->status()) == 1 && genAna.IsMotherH(candElectrons[takenETmp2].genParticle(j)) )
+          { isFromZ_L2 = true; }
+        }
+
        if( foundPhotZEl1 )
 	 {
 	   FSR_Z1 = true;
@@ -2473,6 +2955,9 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	   if(candMuons.size() >= 4 ) nEv4GoodLep_4mu += eventWeight;
 	   if(candElectrons.size() >= 4) nEv4GoodLep_4e += eventWeight;
 	 }
+
+        foundZ1 = true;
+
      }
 
    if( Z1Vec.M() > mZ1Low && Z1Vec.M() < mZ1High && (Z1isMuons || Z1isElectrons) )
@@ -2481,11 +2966,14 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
        nEvAfterZ1Cut += eventWeight;
        if(Z1isMuons) nEvAfterZ1Cut_2mu += eventWeight;
        if(Z1isElectrons) nEvAfterZ1Cut_2e += eventWeight;
+
+       if(isFromZ_L1 && isFromZ_L2) sigEff_4->advanceSigNumCounters_trueMZ1(eventType, eventWeight);
+
      }
 
-
-
    /////////////////////Z2////////////////////////////
+
+   bool isFromZ_L3 = false; bool isFromZ_L4 = false;
 
    double sumPtZ2 = 0, sumPtZ2_tmp = 0;
    tmpAssociatedPh = 999;
@@ -2514,7 +3002,6 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
                    if(tmpDeltaR2 < 0.02) continue;
                    if(tmpDeltaR3 < 0.02) continue;
                    if(tmpDeltaR4 < 0.02) continue;
-
 
 		   bool foundZ2 = findZ(fsrPhotons, deltaRVec, candMuons[i], candMuons[j],takenPhotonZ1, takenPhotMu2, tmpAssociatedPh, tmpZVec, 
 					 tmpPhotVec, foundPhot);
@@ -2596,8 +3083,25 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
        if((Z1isMuons && Z2isElectrons) || (Z1isElectrons && Z2isMuons)) nEvAfterZ2Formed_2e2mu += eventWeight;
      }
    
+   //cout<<"search for Z2"<<endl;
+
    if(Z2isMuons)
      {
+
+      //cout<<"Z2 is muon"<<endl;
+
+      for(unsigned int j = 0; j < candMuons[takenZ2_1].genParticleRefs().size(); j++)
+        {
+          if( abs(candMuons[takenZ2_1].genParticle(j)->pdgId()) == 13 && abs(candMuons[takenZ2_1].genParticle(j)->status()) == 1 && genAna.IsMotherH(candMuons[takenZ2_1].genParticle(j)) )
+          { isFromZ_L3 = true; }
+        }
+
+      for(unsigned int j = 0; j < candMuons[takenZ2_2].genParticleRefs().size(); j++)
+        {
+          if( abs(candMuons[takenZ2_2].genParticle(j)->pdgId()) == 13 && abs(candMuons[takenZ2_2].genParticle(j)->status()) == 1 && genAna.IsMotherH(candMuons[takenZ2_2].genParticle(j)) )
+          { isFromZ_L4 = true; }
+        }
+
        if( foundPhotZMu2 )
          {
 	   FSR_Z2 = true;
@@ -2619,8 +3123,24 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	 FSRPhot2_phi = -1;
        }
      }
+
    if(Z2isElectrons)
      {
+
+      //cout<<"Z2 is electron"<<endl; 
+
+      for(unsigned int j = 0; j < candElectrons[takenZ2_1].genParticleRefs().size(); j++)
+        {
+          if( abs(candElectrons[takenZ2_1].genParticle(j)->pdgId()) == 11 && abs(candElectrons[takenZ2_1].genParticle(j)->status()) == 1 && genAna.IsMotherH(candElectrons[takenZ2_1].genParticle(j)) )
+          { isFromZ_L3 = true; }
+        }
+
+      for(unsigned int j = 0; j < candElectrons[takenZ2_2].genParticleRefs().size(); j++)
+        {
+          if( abs(candElectrons[takenZ2_2].genParticle(j)->pdgId()) == 11 && abs(candElectrons[takenZ2_2].genParticle(j)->status()) == 1 && genAna.IsMotherH(candElectrons[takenZ2_2].genParticle(j)) )
+          { isFromZ_L4 = true; }
+        }
+
        if( foundPhotZEl2 )
          {
 	   FSR_Z2 = true;
@@ -2643,8 +3163,6 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
        }
      }
 
-
-
        //Determine whether a Higgs candidate was formed
        if( Z1isMuons == true && Z2isMuons == true )
 	 {
@@ -2657,7 +3175,11 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	     {
 	       if( mZ2 > mZ2Low && mZ2 < mZ2High)
 		 {
-		   if(isSignal) sigEff_4->advanceSigNumCounters_MZ2(eventType, "reco4mu",eventWeight);
+                   //if(eventType!="4mu")cout<<"eventType "<<eventType<<endl;
+		   if(isSignal) sigEff_4->advanceSigNumCounters_MZ2(eventType, "reco4mu", eventWeight);
+
+                   if(isSignal && isFromZ_L3 && isFromZ_L4) sigEff_4->advanceSigNumCounters_trueMZ2(eventType, "reco4mu", eventWeight);
+                  
 		   nEvAfterZ2Cut += eventWeight;
 		   nEvAfterZ2Cut_4mu += eventWeight;
 		 }
@@ -2682,10 +3204,12 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	   mZ2 = Z2Vec.M();
 	   if( mZ1 > mZ1Low && mZ1 < mZ1High)
 	     {
-
 	       if( mZ2 >mZ2Low && mZ2 < mZ2High)
 		 {
-		   if(isSignal) sigEff_4->advanceSigNumCounters_MZ2(eventType, "reco2e2mu",eventWeight);
+                   //if(eventType!="2e2mu")cout<<"eventType "<<eventType<<endl;
+		   if(isSignal) sigEff_4->advanceSigNumCounters_MZ2(eventType, "reco2e2mu", eventWeight);
+
+                   if(isSignal && isFromZ_L3 && isFromZ_L4) sigEff_4->advanceSigNumCounters_trueMZ2(eventType, "reco2e2mu", eventWeight);
 
 		   nEvAfterZ2Cut += eventWeight;
 		   nEvAfterZ2Cut_2e2mu += eventWeight;
@@ -2712,10 +3236,12 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	   mZ2 = Z2Vec.M();
 	   if( mZ1 > mZ1Low && mZ1 < mZ1High )
 	     {
-
 	       if( mZ2 >mZ2Low && mZ2 < mZ2High)
 		 {
-		   if(isSignal) sigEff_4->advanceSigNumCounters_MZ2(eventType, "reco2e2mu",eventWeight);
+                   //if(eventType!="2e2mu")cout<<"eventType "<<eventType<<endl;
+		   if(isSignal) sigEff_4->advanceSigNumCounters_MZ2(eventType, "reco2e2mu", eventWeight);
+
+                   if(isSignal && isFromZ_L3 && isFromZ_L4) sigEff_4->advanceSigNumCounters_trueMZ2(eventType, "reco2e2mu", eventWeight);
 
 		   nEvAfterZ2Cut += eventWeight;
 		   nEvAfterZ2Cut_2e2mu += eventWeight;
@@ -2743,15 +3269,20 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	     {
 	       if( mZ2 >mZ2Low && mZ2 < mZ2High)
 		 {
-		   if(isSignal) sigEff_4->advanceSigNumCounters_MZ2(eventType, "reco4e",eventWeight);
+                   if(eventType!="4e")cout<<"eventType "<<eventType<<"; GenFS "<<GenFS<<endl;
+		   if(isSignal) sigEff_4->advanceSigNumCounters_MZ2(eventType, "reco4e", eventWeight);
+
+                   if(isSignal && isFromZ_L3 && isFromZ_L4) sigEff_4->advanceSigNumCounters_trueMZ2(eventType, "reco4e", eventWeight);
 
 		   nEvAfterZ2Cut += eventWeight;
 		   nEvAfterZ2Cut_4e += eventWeight;
+/*
 		 }
 	     }
 
 	   if( (mZ1 > mZ1Low && mZ1 < mZ1High) && (mZ2 > mZ2Low && mZ2 < mZ2High) )
 	     {
+*/
 	       foundHiggsCandidate = true;
 	       RecoFourEEvent = true;
 	       selectedElectrons.push_back(candElectrons[takenZ1_1]);
@@ -2759,7 +3290,11 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	       selectedElectrons.push_back(candElectrons[takenZ2_1]);
 	       selectedElectrons.push_back(candElectrons[takenZ2_2]);
 	     }
-	 }
+           }
+
+	}
+
+       //cout<<"find Higgs"<<endl;
 
        // If a Higgs candidate is formed, save its information
        if( foundHiggsCandidate )
@@ -2851,8 +3386,6 @@ UFHZZ4LAna::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 	       m4l = HiggsCandVec.M();
 	     }
 	 }
-
-
  }
 
 
@@ -3138,18 +3671,13 @@ UFHZZ4LAna::findHiggsCandidate_MixFlavour(std::vector<pat::Muon> &candMuons, std
     {
         nEvBeforeZCuts += eventWeight;
         nEvBeforeZCuts_4mu += eventWeight;
-        
-
-        
+       
         mZ1 = Z1Vec.M();
         mZ2 = Z2Vec.M();
         if( mZ1 > mZ1Low && mZ1 < mZ1High )
         {
-            //nEvAfterZ1Cut += eventWeight;
-            //nEvAfterZ1Cut_4mu += eventWeight;
             if( mZ2 > mZ2Low && mZ2 < mZ2High)
             {
-	      if(isSignal) sigEff_4->advanceSigNumCounters_MZ2(eventType, "reco4mu",eventWeight);
 	      nEvAfterZ2Cut += eventWeight;
 	      nEvAfterZ2Cut_4mu += eventWeight;
             }
@@ -3170,20 +3698,12 @@ UFHZZ4LAna::findHiggsCandidate_MixFlavour(std::vector<pat::Muon> &candMuons, std
         nEvBeforeZCuts += eventWeight;
         nEvBeforeZCuts_2e2mu += eventWeight;
         
-
-        
-        
         mZ1 = Z1Vec.M();
         mZ2 = Z2Vec.M();
         if( mZ1 > mZ1Low && mZ1 < mZ1High)
         {
-            
-            //nEvAfterZ1Cut += eventWeight;
-            //nEvAfterZ1Cut_2e2mu += eventWeight;
             if( mZ2 >mZ2Low && mZ2 < mZ2High)
-            {
-	      if(isSignal) sigEff_4->advanceSigNumCounters_MZ2(eventType, "reco2e2mu",eventWeight);
-	      
+            { 
 	      nEvAfterZ2Cut += eventWeight;
 	      nEvAfterZ2Cut_2e2mu += eventWeight;
             }
@@ -3204,19 +3724,14 @@ UFHZZ4LAna::findHiggsCandidate_MixFlavour(std::vector<pat::Muon> &candMuons, std
         nEvBeforeZCuts += eventWeight;
         nEvBeforeZCuts_2e2mu += eventWeight;
         
-
-        
-        
         mZ1 = Z1Vec.M();
         mZ2 = Z2Vec.M();
         if( mZ1 > mZ1Low && mZ1 < mZ1High )
         {
-            
-            //nEvAfterZ1Cut += eventWeight;
-            //nEvAfterZ1Cut_2e2mu += eventWeight;
             if( mZ2 >mZ2Low && mZ2 < mZ2High)
             {
-	      if(isSignal) sigEff_4->advanceSigNumCounters_MZ2(eventType, "reco2e2mu",eventWeight);
+
+//	      if(isSignal) sigEff_4->advanceSigNumCounters_MZ2(eventType, "reco2e2mu", eventWeight);
                 
 	      nEvAfterZ2Cut += eventWeight;
 	      nEvAfterZ2Cut_2e2mu += eventWeight;
@@ -3238,18 +3753,14 @@ UFHZZ4LAna::findHiggsCandidate_MixFlavour(std::vector<pat::Muon> &candMuons, std
         nEvBeforeZCuts += eventWeight;
         nEvBeforeZCuts_4e += eventWeight;
         
-
-        
         mZ1 = Z1Vec.M();
         mZ2 = Z2Vec.M();
         if( mZ1 > mZ1Low && mZ1 < mZ1High)
         {
-            
-            //nEvAfterZ1Cut += eventWeight;
-            //nEvAfterZ1Cut_4e += eventWeight;
             if( mZ2 >mZ2Low && mZ2 < mZ2High)
             {
-	      if(isSignal) sigEff_4->advanceSigNumCounters_MZ2(eventType, "reco4e",eventWeight);
+
+//	      if(isSignal) sigEff_4->advanceSigNumCounters_MZ2(eventType, "reco4e", eventWeight);
 	      
 	      nEvAfterZ2Cut += eventWeight;
 	      nEvAfterZ2Cut_4e += eventWeight;
@@ -3472,14 +3983,14 @@ void UFHZZ4LAna::fillStepPlots()
   if( isMC ){ nEvAfterSkim = nEvPassedHlt;}
   if(!isMC && doBlinding)
     {
-      nEvAfterZ4lCut = -1;
-      nEvAfterM4lCut = -1;
-      nEvAfterZ4lCut_4mu = -1;
-      nEvAfterM4lCut_4mu = -1;
-      nEvAfterZ4lCut_4e = -1;
-      nEvAfterM4lCut_4e = -1;
-      nEvAfterZ4lCut_2e2mu = -1;
-      nEvAfterM4lCut_2e2mu = -1;
+      nEvAfterZ4lCut = 0;
+      nEvAfterM4lCut = 0;
+      nEvAfterZ4lCut_4mu = 0;
+      nEvAfterM4lCut_4mu = 0;
+      nEvAfterZ4lCut_4e = 0;
+      nEvAfterM4lCut_4e = 0;
+      nEvAfterZ4lCut_2e2mu = 0;
+      nEvAfterM4lCut_2e2mu = 0;
     }
 
 
@@ -3608,7 +4119,13 @@ void UFHZZ4LAna::bookPassedEventTree(TString treeName, TTree *tree)
   tree->Branch("Z4l_maxMass2l",&maxMass2Lep,"Z4l_maxMass2l/D");
   tree->Branch("thetaZ2",&thetaZ2,"thetaZ2/D");
   tree->Branch("etaZ2",&etaZ2,"etaZ2/D");
+
+  tree->Branch("foundZ1",&foundZ1,"foundZ1/O");
+  tree->Branch("foundHiggsCandidate",&foundHiggsCandidate,"foundHiggsCandidate/O");
   tree->Branch("passedFullSelection",&passedFullSelection,"passedFullSelection/O");
+
+//  tree->Branch("isRecord",&isRecord,"isRecord/O");
+
   tree->Branch("passedZ4lSelection",&passedZ4lSelection,"passedZ4lSelection/O");
   tree->Branch("passedQCDcut",&passedQCDcut,"passedQCDcut/O");
   tree->Branch("finalState",&finalState,"finalState/I");
@@ -3616,9 +4133,18 @@ void UFHZZ4LAna::bookPassedEventTree(TString treeName, TTree *tree)
   tree->Branch("scaleWeight",&scaleWeight,"scaleWeight/D");
   tree->Branch("eventWeight",&eventWeight,"eventWeight/D");
   tree->Branch("MC_weight",&MC_weight,"MC_weight/D");
+
   tree->Branch("pT4l",&pT4l,"pT4l/D");
   tree->Branch("massZ1",&massZ1,"massZ1/D");
   tree->Branch("massZ2",&massZ2,"massZ2/D");  
+  tree->Branch("y",&y,"y/D");
+
+  tree->Branch("pT4lGEN",&pT4lGEN,"pT4lGEN/D");
+  tree->Branch("massZ2GEN",&massZ2GEN,"massZ2GEN/D");
+  tree->Branch("yGEN",&yGEN,"yGEN/D");
+
+  tree->Branch("passedFullSelectionGEN",&passedFullSelectionGEN,"passedFullSelectionGEN/O");  
+
   tree->Branch("Z1Mass",&massZ1,"Z1Mass/D");
   tree->Branch("Z2Mass",&massZ2,"Z2Mass/D");
   tree->Branch("eta4l",&eta4l,"eta4l/D");
@@ -3679,6 +4205,27 @@ void UFHZZ4LAna::bookPassedEventTree(TString treeName, TTree *tree)
   tree->Branch("pZL3",&pZL3,"pZL3/D");
   tree->Branch("pZL4",&pZL4,"pZL4/D");
 
+  tree->Branch("isFromH_L1",&isFromH_L1,"isFromH_L1/O");
+  tree->Branch("isFromH_L2",&isFromH_L2,"isFromH_L2/O");
+  tree->Branch("isFromH_L3",&isFromH_L3,"isFromH_L3/O");
+  tree->Branch("isFromH_L4",&isFromH_L4,"isFromH_L4/O");
+
+  tree->Branch("isFromH_L1GEN",&isFromH_L1GEN,"isFromH_L1GEN/O");
+  tree->Branch("isFromH_L2GEN",&isFromH_L2GEN,"isFromH_L2GEN/O");
+  tree->Branch("isFromH_L3GEN",&isFromH_L3GEN,"isFromH_L3GEN/O");
+  tree->Branch("isFromH_L4GEN",&isFromH_L4GEN,"isFromH_L4GEN/O");
+
+  tree->Branch("isWleptonicDecay", &isWleptonicDecay, "&isWleptonicDecay/I");
+  tree->Branch("isZleptonicDecay", &isZleptonicDecay, "&isZleptonicDecay/I");
+  tree->Branch("GenFS",&GenFS,"GenFS/I");
+  tree->Branch("RecoFS",&RecoFS,"RecoFS/I");  
+
+  tree->Branch("MomID_L1",&MomID_L1,"MomID_L1/I");
+  tree->Branch("MomID_L2",&MomID_L2,"MomID_L2/I");
+  tree->Branch("MomID_L3",&MomID_L3,"MomID_L3/I");
+  tree->Branch("MomID_L4",&MomID_L4,"MomID_L4/I");
+
+  /*
   tree->Branch("pTL1FSR",&pTL1FSR,"pTL1FSR/D");
   tree->Branch("pTL2FSR",&pTL2FSR,"pTL2FSR/D");
   tree->Branch("pTL3FSR",&pTL3FSR,"pTL3FSR/D");
@@ -3695,7 +4242,7 @@ void UFHZZ4LAna::bookPassedEventTree(TString treeName, TTree *tree)
   tree->Branch("pZL2FSR",&pZL2FSR,"pZL2FSR/D");
   tree->Branch("pZL3FSR",&pZL3FSR,"pZL3FSR/D");
   tree->Branch("pZL4FSR",&pZL4FSR,"pZL4FSR/D");
-
+  */
 
   tree->Branch("pTZ1",&pTZ1,"pTZ1/D");
   tree->Branch("pTZ2",&pTZ2,"pTZ2/D");
@@ -3717,6 +4264,8 @@ void UFHZZ4LAna::bookPassedEventTree(TString treeName, TTree *tree)
   tree->Branch("phiL2",&phiL2,"phiL2/D");
   tree->Branch("phiL3",&phiL3,"phiL3/D");
   tree->Branch("phiL4",&phiL4,"phiL4/D");
+
+  /*
   tree->Branch("isoTrackL1",&isoTrackL1,"isoTrackL1/D");
   tree->Branch("isoTrackL2",&isoTrackL2,"isoTrackL2/D");
   tree->Branch("isoTrackL3",&isoTrackL3,"isoTrackL3/D");
@@ -3823,12 +4372,12 @@ void UFHZZ4LAna::bookPassedEventTree(TString treeName, TTree *tree)
   tree->Branch("pdfSigM4l_ResDown_noFSR",&pdfSigM4l_ResDown_noFSR,"pdfSigM4l_ResDown_noFSR/D");
   tree->Branch("pdfBkgM4l_ResDown",&pdfBkgM4l_ResDown,"pdfBkgM4l_ResDown/D");
   tree->Branch("pdfBkgM4l_ResDown_noFSR",&pdfBkgM4l_ResDown_noFSR,"pdfBkgM4l_ResDown_noFSR/D");
-
+  */
 
   //MELA
-  tree->Branch("melaLD",&melaLD,"melaLD/D");
-  tree->Branch("mela_Sig",&mela_Sig,"mela_Sig/D");
-  tree->Branch("mela_Bkg",&mela_Bkg,"mela_Bkg/D");
+  //tree->Branch("melaLD",&melaLD,"melaLD/D");
+  //tree->Branch("mela_Sig",&mela_Sig,"mela_Sig/D");
+  //tree->Branch("mela_Bkg",&mela_Bkg,"mela_Bkg/D");
   /*
   tree->Branch("melaLD_Pt",&melaLD_Pt,"melaLD_Pt/F");
   tree->Branch("mela_Sig_Pt",&mela_Sig_Pt,"mela_Sig_Pt/F");
@@ -3840,6 +4389,7 @@ void UFHZZ4LAna::bookPassedEventTree(TString treeName, TTree *tree)
   tree->Branch("mela_Sig_PtY",&mela_Sig_PtY,"mela_Sig_PtY/F");
   tree->Branch("mela_Bkg_PtY",&mela_Bkg_PtY,"mela_Bkg_PtY/F");
   */
+  /*
   tree->Branch("pseudoMelaLD",&pseudoMelaLD,"pseudoMelaLD/F");
   tree->Branch("pseudoMela_SM",&pseudoMela_SM,"pseudoMela_SM/F");
   tree->Branch("pseudoMela_PS",&pseudoMela_PS,"pseudoMela_PS/F");
@@ -3855,7 +4405,7 @@ void UFHZZ4LAna::bookPassedEventTree(TString treeName, TTree *tree)
   tree->Branch("spin2MelaLD",&spin2MelaLD,"spin2MelaLD/F");
   tree->Branch("spin2Mela_SM",&spin2Mela_SM,"spin2Mela_SM/F");
   tree->Branch("spin2Mela_S2",&spin2Mela_S2,"spin2Mela_S2/F");
-
+  */
   /*
   tree->Branch("p0plus_melaNorm",&p0plus_melaNorm,"p0plus_melaNorm/F");
   tree->Branch("p0plus_mela",&p0plus_mela,"p0plus_mela/F");
@@ -3876,7 +4426,7 @@ void UFHZZ4LAna::bookPassedEventTree(TString treeName, TTree *tree)
   tree->Branch("p0plus_m4l",&p0plus_m4l,"p0plus_m4l/F");
   tree->Branch("bkg_m4l",&bkg_m4l,"bkg_m4l/F");
   */
-
+  /*
   tree->Branch("MEKD_wPDF",&MEKD_wPDF,"MEKD_wPDF/D");
   tree->Branch("MEKD_ME_H_wPDF",&MEKD_ME_H_wPDF,"MEKD_ME_H_wPDF/D");
   tree->Branch("MEKD_ME_ZZ_wPDF",&MEKD_ME_ZZ_wPDF,"MEKD_ME_ZZ_wPDF/D");
@@ -3967,7 +4517,8 @@ void UFHZZ4LAna::bookPassedEventTree(TString treeName, TTree *tree)
   tree->Branch("JHU_ME_qqh2P_noPDF_noFSR",&JHU_ME_qqh2P_noPDF_noFSR,"JHU_ME_qqh2P_noPDF_noFSR/D");
   tree->Branch("JHUKD_ggh2P_ZZ_noPDF_noFSR",&JHUKD_ggh2P_ZZ_noPDF_noFSR,"JHUKD_ggh2P_ZZ_noPDF_noFSR/D");
   tree->Branch("JHU_ME_ggh2P_noPDF_noFSR",&JHU_ME_ggh2P_noPDF_noFSR,"JHU_ME_ggh2P_noPDF_noFSR/D");
-  
+  */   
+
   tree->Branch("GENidL1_S1",&GENidL1_S1,"GENidL1_S1/I");
   tree->Branch("GENidL2_S1",&GENidL2_S1,"GENidL2_S1/I");
   tree->Branch("GENidL3_S1",&GENidL3_S1,"GENidL3_S1/I");
@@ -3977,14 +4528,26 @@ void UFHZZ4LAna::bookPassedEventTree(TString treeName, TTree *tree)
   tree->Branch("GENEL3_S1",&GENEL3_S1,"GENEL3_S1/D");
   tree->Branch("GENEL4_S1",&GENEL4_S1,"GENEL4_S1/D");
 
+  tree->Branch("GENrecoIsoL1_S3",&GENrecoIsoL1_S3,"GENrecoIsoL1_S3/D");
+  tree->Branch("GENrecoIsoL2_S3",&GENrecoIsoL2_S3,"GENrecoIsoL2_S3/D");
+  tree->Branch("GENrecoIsoL3_S3",&GENrecoIsoL3_S3,"GENrecoIsoL3_S3/D");
+  tree->Branch("GENrecoIsoL4_S3",&GENrecoIsoL4_S3,"GENrecoIsoL4_S3/D");
+  tree->Branch("GENrecoIsoL5_S3",&GENrecoIsoL5_S3,"GENrecoIsoL5_S3/D");
+  tree->Branch("GENrecoIsoL6_S3",&GENrecoIsoL6_S3,"GENrecoIsoL6_S3/D");
+
   tree->Branch("GENidL1_S3",&GENidL1_S3,"GENidL1_S3/I");
   tree->Branch("GENidL2_S3",&GENidL2_S3,"GENidL2_S3/I");
   tree->Branch("GENidL3_S3",&GENidL3_S3,"GENidL3_S3/I");
   tree->Branch("GENidL4_S3",&GENidL4_S3,"GENidL4_S3/I");
+  tree->Branch("GENidL5_S3",&GENidL5_S3,"GENidL5_S3/I");
+  tree->Branch("GENidL6_S3",&GENidL6_S3,"GENidL6_S3/I");
+
   tree->Branch("GENEL1_S3",&GENEL1_S3,"GENEL1_S3/D");
   tree->Branch("GENEL2_S3",&GENEL2_S3,"GENEL2_S3/D");
   tree->Branch("GENEL3_S3",&GENEL3_S3,"GENEL3_S3/D");
   tree->Branch("GENEL4_S3",&GENEL4_S3,"GENEL4_S3/D");
+  tree->Branch("GENEL5_S3",&GENEL5_S3,"GENEL5_S3/D");
+  tree->Branch("GENEL6_S3",&GENEL6_S3,"GENEL6_S3/D");
 
   tree->Branch("GENEZ1",&GENEZ1,"GENEZ1/D");
   tree->Branch("GENEZ2",&GENEZ2,"GENEZ2/D");
@@ -4013,18 +4576,29 @@ void UFHZZ4LAna::bookPassedEventTree(TString treeName, TTree *tree)
   tree->Branch("GENpTL2_S3",&GENpTL2_S3,"GENpTL2_S3/D");
   tree->Branch("GENpTL3_S3",&GENpTL3_S3,"GENpTL3_S3/D");
   tree->Branch("GENpTL4_S3",&GENpTL4_S3,"GENpTL4_S3/D");
+  tree->Branch("GENpTL5_S3",&GENpTL5_S3,"GENpTL5_S3/D");
+  tree->Branch("GENpTL6_S3",&GENpTL6_S3,"GENpTL6_S3/D");
+
   tree->Branch("GENpXL1_S3",&GENpXL1_S3,"GENpXL1_S3/D");
   tree->Branch("GENpXL2_S3",&GENpXL2_S3,"GENpXL2_S3/D");
   tree->Branch("GENpXL3_S3",&GENpXL3_S3,"GENpXL3_S3/D");
   tree->Branch("GENpXL4_S3",&GENpXL4_S3,"GENpXL4_S3/D");
+  tree->Branch("GENpXL5_S3",&GENpXL5_S3,"GENpXL5_S3/D");
+  tree->Branch("GENpXL6_S3",&GENpXL6_S3,"GENpXL6_S3/D");
+
   tree->Branch("GENpYL1_S3",&GENpYL1_S3,"GENpYL1_S3/D");
   tree->Branch("GENpYL2_S3",&GENpYL2_S3,"GENpYL2_S3/D");
   tree->Branch("GENpYL3_S3",&GENpYL3_S3,"GENpYL3_S3/D");
   tree->Branch("GENpYL4_S3",&GENpYL4_S3,"GENpYL4_S3/D");
+  tree->Branch("GENpYL5_S3",&GENpYL5_S3,"GENpYL5_S3/D");
+  tree->Branch("GENpYL6_S3",&GENpYL6_S3,"GENpYL6_S3/D");
+
   tree->Branch("GENpZL1_S3",&GENpZL1_S3,"GENpZL1_S3/D");
   tree->Branch("GENpZL2_S3",&GENpZL2_S3,"GENpZL2_S3/D");
   tree->Branch("GENpZL3_S3",&GENpZL3_S3,"GENpZL3_S3/D");
   tree->Branch("GENpZL4_S3",&GENpZL4_S3,"GENpZL4_S3/D");
+  tree->Branch("GENpZL5_S3",&GENpZL5_S3,"GENpZL5_S3/D");
+  tree->Branch("GENpZL6_S3",&GENpZL6_S3,"GENpZL6_S3/D");
 
   tree->Branch("GENpTZ1",&GENpTZ1,"GENpTZ1/D");
   tree->Branch("GENpTZ2",&GENpTZ2,"GENpTZ2/D");
@@ -4035,10 +4609,10 @@ void UFHZZ4LAna::bookPassedEventTree(TString treeName, TTree *tree)
   tree->Branch("GENpZZ1",&GENpZZ1,"GENpZZ1/D");
   tree->Branch("GENpZZ2",&GENpZZ2,"GENpZZ2/D");
 
-  tree->Branch("GENchargeL1_S1",&GENchargeL1_S1,"GENchargeL1_S1/I");
-  tree->Branch("GENchargeL2_S1",&GENchargeL2_S1,"GENchargeL2_S1/I");
-  tree->Branch("GENchargeL3_S1",&GENchargeL3_S1,"GENchargeL3_S1/I");
-  tree->Branch("GENchargeL4_S1",&GENchargeL4_S1,"GENchargeL4_S1/I");
+  tree->Branch("GENchargeL1_S1",&GENchargeL1_S1,"GENchargeL1_S1/D");
+  tree->Branch("GENchargeL2_S1",&GENchargeL2_S1,"GENchargeL2_S1/D");
+  tree->Branch("GENchargeL3_S1",&GENchargeL3_S1,"GENchargeL3_S1/D");
+  tree->Branch("GENchargeL4_S1",&GENchargeL4_S1,"GENchargeL4_S1/D");
   tree->Branch("GENetaL1_S1",&GENetaL1_S1,"GENetaL1_S1/D");
   tree->Branch("GENetaL2_S1",&GENetaL2_S1,"GENetaL2_S1/D");
   tree->Branch("GENetaL3_S1",&GENetaL3_S1,"GENetaL3_S1/D");
@@ -4048,18 +4622,68 @@ void UFHZZ4LAna::bookPassedEventTree(TString treeName, TTree *tree)
   tree->Branch("GENphiL3_S1",&GENphiL3_S1,"GENphiL3_S1/D");
   tree->Branch("GENphiL4_S1",&GENphiL4_S1,"GENphiL4_S1/D");
 
-  tree->Branch("GENchargeL1_S3",&GENchargeL1_S3,"GENchargeL1_S3/I");
-  tree->Branch("GENchargeL2_S3",&GENchargeL2_S3,"GENchargeL2_S3/I");
-  tree->Branch("GENchargeL3_S3",&GENchargeL3_S3,"GENchargeL3_S3/I");
-  tree->Branch("GENchargeL4_S3",&GENchargeL4_S3,"GENchargeL4_S3/I");
+  //////////////////
+
+  tree->Branch("GENchargeL1_S3",&GENchargeL1_S3,"GENchargeL1_S3/D");
+  tree->Branch("GENchargeL2_S3",&GENchargeL2_S3,"GENchargeL2_S3/D");
+  tree->Branch("GENchargeL3_S3",&GENchargeL3_S3,"GENchargeL3_S3/D");
+  tree->Branch("GENchargeL4_S3",&GENchargeL4_S3,"GENchargeL4_S3/D");
+
   tree->Branch("GENetaL1_S3",&GENetaL1_S3,"GENetaL1_S3/D");
   tree->Branch("GENetaL2_S3",&GENetaL2_S3,"GENetaL2_S3/D");
   tree->Branch("GENetaL3_S3",&GENetaL3_S3,"GENetaL3_S3/D");
   tree->Branch("GENetaL4_S3",&GENetaL4_S3,"GENetaL4_S3/D");
+  tree->Branch("GENetaL5_S3",&GENetaL5_S3,"GENetaL5_S3/D");
+  tree->Branch("GENetaL6_S3",&GENetaL6_S3,"GENetaL6_S3/D");
+
   tree->Branch("GENphiL1_S3",&GENphiL1_S3,"GENphiL1_S3/D");
   tree->Branch("GENphiL2_S3",&GENphiL2_S3,"GENphiL2_S3/D");
   tree->Branch("GENphiL3_S3",&GENphiL3_S3,"GENphiL3_S3/D");
   tree->Branch("GENphiL4_S3",&GENphiL4_S3,"GENphiL4_S3/D");
+  tree->Branch("GENphiL5_S3",&GENphiL5_S3,"GENphiL5_S3/D");
+  tree->Branch("GENphiL6_S3",&GENphiL6_S3,"GENphiL6_S3/D");
+
+  tree->Branch("GENisoL1_S3",&GENisoL1_S3,"GENisoL1_S3/D");
+  tree->Branch("GENisoL2_S3",&GENisoL2_S3,"GENisoL2_S3/D");
+  tree->Branch("GENisoL3_S3",&GENisoL3_S3,"GENisoL3_S3/D");
+  tree->Branch("GENisoL4_S3",&GENisoL4_S3,"GENisoL4_S3/D");
+  tree->Branch("GENisoL5_S3",&GENisoL5_S3,"GENisoL5_S3/D");
+  tree->Branch("GENisoL6_S3",&GENisoL6_S3,"GENisoL6_S3/D");
+
+  tree->Branch("GENnL_S3",&GENnL_S3,"GENnL_S3/I");
+
+  tree->Branch("nGenJets",&nGenJets,"nGenJets/I");
+  tree->Branch("nGenJets_dR",&nGenJets_dR,"nGenJets_dR/I");
+
+  tree->Branch("nGenJets4",&nGenJets4,"nGenJets4/I");
+  tree->Branch("nGenJets_dR4",&nGenJets_dR4,"nGenJets_dR4/I");
+
+  tree->Branch("nparton",&nparton,"nparton/I");
+  tree->Branch("nparton_fiducial",&nparton_fiducial,"nparton_fiducial/I");
+
+  tree->Branch("leading_pT",&leading_pT,"leading_pT/D");
+  tree->Branch("subleading_pT",&subleading_pT,"subleading_pT/D");
+
+  tree->Branch("ntau",&ntau,"ntau/I");
+  tree->Branch("ntau_fiducial",&ntau_fiducial,"ntau_fiducial/I");
+
+  tree->Branch("nRecoJets",&nRecoJets,"nRecoJets/I");
+  tree->Branch("nRecoJets_dR",&nRecoJets_dR,"nRecoJets_dR/I");
+  tree->Branch("nVBFJets",&nVBFJets,"nVBFJets/I");
+
+  tree->Branch("isFromHL1_S3",&isFromHL1_S3,"isFromHL1_S3/O");
+  tree->Branch("isFromHL2_S3",&isFromHL2_S3,"isFromHL2_S3/O");
+  tree->Branch("isFromHL3_S3",&isFromHL3_S3,"isFromHL3_S3/O");
+  tree->Branch("isFromHL4_S3",&isFromHL4_S3,"isFromHL4_S3/O");
+  tree->Branch("isFromHL5_S3",&isFromHL5_S3,"isFromHL5_S3/O");
+  tree->Branch("isFromHL6_S3",&isFromHL6_S3,"isFromHL6_S3/O");
+
+  tree->Branch("isFromWL1_S3",&isFromWL1_S3,"isFromWL1_S3/O");
+  tree->Branch("isFromWL2_S3",&isFromWL2_S3,"isFromWL2_S3/O");
+  tree->Branch("isFromWL3_S3",&isFromWL3_S3,"isFromWL3_S3/O");
+  tree->Branch("isFromWL4_S3",&isFromWL4_S3,"isFromWL4_S3/O");
+  tree->Branch("isFromWL5_S3",&isFromWL5_S3,"isFromWL5_S3/O");
+  tree->Branch("isFromWL6_S3",&isFromWL6_S3,"isFromWL6_S3/O");
 
   tree->Branch("GENMH",&GENMH,"GENMH/D");
   tree->Branch("GENM4L",&GENM4L,"GENM4L/D");
@@ -4127,6 +4751,12 @@ void UFHZZ4LAna::bookPassedEventTree(TString treeName, TTree *tree)
   tree->Branch("VBFDiJetMass",&VBFDiJetMass,"VBFDiJetMass/D");
   tree->Branch("VBFDeltaEta",&VBFDeltaEta,"VBFDeltaEta/D");
   tree->Branch("FisherDiscrim",&FisherDiscrim,"FisherDiscrim/D");
+
+  // reco jet collection
+  tree->Branch("recoJet_pT", recoJet_pT,"recoJet_pT[nVBFJets]/D");
+  tree->Branch("recoJet_eta", recoJet_eta,"recoJet_eta[nVBFJets]/D");
+  tree->Branch("recoJet_unc", recoJet_unc,"recoJet_unc[nVBFJets]/D");
+
 }
 
 
@@ -4144,9 +4774,7 @@ void UFHZZ4LAna::setTreeVariables( const edm::Event& iEvent, const edm::EventSet
   if( RecoFourEEvent  ){ finalState = 2;}
   if( RecoTwoETwoMuEvent ){ finalState = 3;}
   if( RecoTwoMuTwoEEvent ){ finalState = 4;}
-  Run = iEvent.id().run();
-  Event = iEvent.id().event();
-  LumiSect = iEvent.id().luminosityBlock();
+
   mass4l = HiggsCandVec.M();
   m4lNoFSR = HiggsCandVecNoFSR.M();
   if(RecoFourMuEvent){mass4mu = HiggsCandVec.M();}
@@ -4158,6 +4786,9 @@ void UFHZZ4LAna::setTreeVariables( const edm::Event& iEvent, const edm::EventSet
   pT4l = HiggsCandVec.Pt();
   massZ1 = Z1Vec.M();
   massZ2 = Z2Vec.M();
+
+  y = 0.5*log((HiggsCandVec.E()-HiggsCandVec.Pz())/(HiggsCandVec.E()+HiggsCandVec.Pz()));
+
   eta4l = HiggsCandVec.Eta();
   phi4l = HiggsCandVec.Phi();
   muRho = muonRho;
@@ -5424,7 +6055,7 @@ void UFHZZ4LAna::setTreeVariables( const edm::Event& iEvent, const edm::EventSet
       if (isDeltaR)
 	{
 	  
-	  if (correctedVBFJets[k].pt() > 30 && fabs(selectedVBFJets[k].eta()) < 4.7)
+	  if (correctedVBFJets[k].pt() > pt_cut && fabs(selectedVBFJets[k].eta()) < eta_cut)
 	    {
 	      finalVBFJets.push_back(correctedVBFJets[k]);
 	    }
@@ -5432,6 +6063,11 @@ void UFHZZ4LAna::setTreeVariables( const edm::Event& iEvent, const edm::EventSet
 	}
     }
 
+  nVBFJets = finalVBFJets.size();
+  nRecoJets_dR = finalVBFJets.size();
+
+  //cout<<"prepare calculation of jet unc"<<endl; 
+  //JetCorrectionUncertainty *total = new JetCorrectionUncertainty(*(new JetCorrectorParameters("UFHZZAnalysis8TeV/UFHZZ4LAna/hists/Summer13_V5_MC_Uncertainty_AK5PF.txt", "Total")));
 
   //VBF                                                                                                                                            
   if(finalVBFJets.size() >= 1){VBFJet1 = true;}
@@ -5454,23 +6090,52 @@ void UFHZZ4LAna::setTreeVariables( const edm::Event& iEvent, const edm::EventSet
     FisherDiscrim = 0.18*fabs(VBFDeltaEta) + 1.92e-4*VBFDiJetMass;
   }
 
+ // reco jets
 
+  cout<<"prepare calculation of jet unc"<<endl;
 
-  
+  for(unsigned int i=0; i<finalVBFJets.size(); i++){
+
+       recoJet_pT[i]=finalVBFJets[i].pt();
+       recoJet_eta[i]=finalVBFJets[i].eta();      
+     
+       cout<<"jet pt "<<recoJet_pT[i]<<", eta "<<recoJet_eta[i]<<endl;
+
+       //JetCorrectorParameters *p = new JetCorrectorParameters("UFHZZAnalysis8TeV/UFHZZ4LAna/hists/Summer13_V5_MC_Uncertainty_AK5PF.txt", "Total");
+
+       JetCorrectionUncertainty *total = new JetCorrectionUncertainty(*(new JetCorrectorParameters("UFHZZAnalysis8TeV/UFHZZ4LAna/hists/Summer13_V5_MC_Uncertainty_AK5PF.txt")));
+
+       total->setJetPt(finalVBFJets[i].pt());
+       total->setJetEta(finalVBFJets[i].eta());
+
+       recoJet_unc[i] = total->getUncertainty(true);
+
+       cout<<"jet unc "<<recoJet_unc[i]<<endl;
+
+       delete total; 
+
+   }
+
 }
 
 
 
 
-void UFHZZ4LAna::setGENVariables(std::vector<reco::GenParticle> Higgs, 
+void UFHZZ4LAna::setGENVariables(const edm::Event& iEvent, std::vector<reco::GenParticle> Higgs, 
 		     std::vector<reco::GenParticle> Zs, 
-		     std::vector<reco::GenParticle> leptonsS1, std::vector<reco::GenParticle> leptonsS3)
+		     std::vector<reco::GenParticle> leptonsS1, std::vector<reco::GenParticle> leptonsS3, std::vector<bool> isFromH, std::vector<bool> isFromW)
 {
 
+  
+  Run = iEvent.id().run();
+  Event = iEvent.id().event();
+  LumiSect = iEvent.id().luminosityBlock();
+  
+  
 
   if( Higgs.size() == 1) GENMH = Higgs[0].mass();
 
-  if( leptonsS1.size() == 4)
+  if( leptonsS1.size() >= 4)
     {
       GENidL1_S1 = leptonsS1[0].pdgId(); GENidL2_S1 = leptonsS1[1].pdgId(); 
       GENidL3_S1 = leptonsS1[2].pdgId(); GENidL4_S1 = leptonsS1[3].pdgId();
@@ -5503,7 +6168,7 @@ void UFHZZ4LAna::setGENVariables(std::vector<reco::GenParticle> Higgs,
 
     }
 
-  if( Zs.size() == 2)
+  if( Zs.size() >= 2)
     {
       GENEZ1 = Zs[0].energy(); GENEZ2 = Zs[1].energy();
       GENpTZ1 = Zs[0].pt();    GENpTZ2 = Zs[1].pt();
@@ -5511,10 +6176,9 @@ void UFHZZ4LAna::setGENVariables(std::vector<reco::GenParticle> Higgs,
       GENpYZ1 = Zs[0].py();    GENpYZ2 = Zs[1].py();
       GENpZZ1 = Zs[0].pz();    GENpZZ2 = Zs[1].pz();
       GENMZ1  = Zs[0].mass();  GENMZ2  = Zs[1].mass();
-    
     }
 
-  if( leptonsS3.size() == 4)
+  if( leptonsS3.size() >= 4)
     {
       GENidL1_S3 = leptonsS3[0].pdgId(); GENidL2_S3 = leptonsS3[1].pdgId(); 
       GENidL3_S3 = leptonsS3[2].pdgId(); GENidL4_S3 = leptonsS3[3].pdgId();
@@ -5543,12 +6207,39 @@ void UFHZZ4LAna::setGENVariables(std::vector<reco::GenParticle> Higgs,
       GENphiL1_S3 = leptonsS3[0].phi(); GENphiL2_S3 = leptonsS3[1].phi();
       GENphiL3_S3 = leptonsS3[2].phi(); GENphiL4_S3 = leptonsS3[3].phi();
     
+      isFromHL1_S3=isFromH[0]; isFromHL2_S3=isFromH[1]; isFromHL3_S3=isFromH[2]; isFromHL4_S3=isFromH[3];
+      isFromWL1_S3=isFromW[0]; isFromWL2_S3=isFromW[1]; isFromWL3_S3=isFromW[2]; isFromWL4_S3=isFromW[3];
+
+      if(leptonsS3.size() >= 5) {
+
+        GENidL5_S3 = leptonsS3[4].pdgId(); GENpTL5_S3 = leptonsS3[4].pt();
+
+        GENpXL5_S3 = leptonsS3[4].px(); GENpYL5_S3 = leptonsS3[4].py(); GENpZL5_S3 = leptonsS3[4].pz(); GENEL5_S3 = leptonsS3[4].energy();
+
+        GENetaL5_S3 = leptonsS3[4].eta(); GENphiL5_S3 = leptonsS3[4].phi();
+
+        isFromHL5_S3=isFromH[4]; isFromWL5_S3=isFromW[4];
+      }
+
+      if(leptonsS3.size() >= 6) {
+
+        GENidL6_S3 = leptonsS3[5].pdgId(); GENpTL6_S3 = leptonsS3[5].pt();
+
+        GENpXL6_S3 = leptonsS3[5].px(); GENpYL6_S3 = leptonsS3[5].py(); GENpZL6_S3 = leptonsS3[0].pz(); GENEL6_S3 = leptonsS3[5].energy();
+
+        GENetaL6_S3 = leptonsS3[5].eta(); GENphiL6_S3 = leptonsS3[5].phi();
+
+        isFromHL6_S3=isFromH[5]; isFromWL5_S3=isFromW[5];
+      }
+
     }
+
+      GENnL_S3 = leptonsS3.size();
 
 }
 
 
-void UFHZZ4LAna::setGENMatchedVariables(std::vector<pat::Muon> selectedMuons, std::vector<pat::Electron> selectedElectrons)
+void UFHZZ4LAna::setGENMatchedVariables(std::vector<pat::Muon> selectedMuons, std::vector<pat::Electron> selectedElectrons, std::vector<reco::GenParticle> leptonsS1)
 {
 
   TLorentzVector m1,m2,m3,m4;
@@ -5556,31 +6247,95 @@ void UFHZZ4LAna::setGENMatchedVariables(std::vector<pat::Muon> selectedMuons, st
   //Muons
   for(unsigned int i = 0; i < selectedMuons.size(); i++)
     {
+
+       bool isFromH = false;
+ 
+       double genZpx, genZpy, genZpz, genZE;
+       TLorentzVector m; int mPdgId=0;
+       TLorentzVector *genZ1 = new TLorentzVector();
+       int charge;
+
+       int momID = -999999;
+
+     if (selectedMuons[i].genParticleRefs().size()==0) {
+
+            // if no genParticleRef, try to find it manually                                                                                                            
+            double mindR = 999999.;
+            int ref = 999999;
+            for (unsigned int j=0; j<leptonsS1.size(); ++j) {
+
+                if (fabs(leptonsS1[j].pdgId())!=13) continue;
+
+                double dR = deltaR(leptonsS1[j].eta(), leptonsS1[j].phi(), selectedMuons[i].eta(), selectedMuons[i].phi());
+                if (dR<mindR) {
+                      mindR = dR;
+                      ref = j;
+                 }
+            }
+
+            if (ref<999999) {
+
+                momID=genAna.MotherID(&leptonsS1.at(ref));
+                //mommomID=genAna.MotherMotherID(&leptonsS1.at(ref)); // you can comment this I added this function to HZZ4lGENAna.h
+
+                if(genAna.IsMotherZ(&leptonsS1.at(ref))) momID = 23;
+                if(genAna.IsMotherW(&leptonsS1.at(ref))) momID = 24;
+                if(genAna.IsMotherT(&leptonsS1.at(ref))) momID = 15;
+            
+                genAna.getStatusThree(&leptonsS1.at(ref),m,13,mPdgId);
+
+                genAna.getMotherZ(&leptonsS1.at(ref),genZpx,genZpy,genZpz,genZE);
+  
+                isFromH = genAna.IsMotherH(&leptonsS1.at(ref));
+
+                genZ1->SetPxPyPzE(genZpx,genZpy,genZpz,genZE);
+
+                if(mPdgId > 0) charge = -1;
+                else charge = 1;
+
+                if(isFromH) break;
+
+            }
+    }
+
+
       for(unsigned int j = 0; j < selectedMuons[i].genParticleRefs().size(); j++)
 	{
+
+          momID=genAna.MotherID(selectedMuons[i].genParticle(j));
+
 	  if( selectedMuons[i].genParticle(j)->status() != 1 ) continue;
 	  if( abs(selectedMuons[i].genParticle(j)->pdgId()) != 13 ) continue;
-	  if( !genAna.IsMotherZ(selectedMuons[i].genParticle(j)) ) continue;
-	  
-	  double genZpx, genZpy, genZpz, genZE;
-	  TLorentzVector m; int mPdgId=0;
-	  TLorentzVector *genZ1 = new TLorentzVector();
+
+          if(genAna.IsMotherZ(selectedMuons[i].genParticle(j))) momID = 23;
+          if(genAna.IsMotherW(selectedMuons[i].genParticle(j))) momID = 24;    
+          if(genAna.IsMotherT(selectedMuons[i].genParticle(j))) momID = 15;
+
 	  genAna.getStatusThree(selectedMuons[i].genParticle(j),m,13,mPdgId);
 	  genAna.getMotherZ(selectedMuons[i].genParticle(j),genZpx,genZpy,genZpz,genZE);
+         
+          isFromH = genAna.IsMotherH(selectedMuons[i].genParticle(j));
+
 	  genZ1->SetPxPyPzE(genZpx,genZpy,genZpz,genZE);
-	  int charge;
+
 	  if(mPdgId > 0) charge = -1;
 	  else charge = 1;
+
+          if(isFromH) break; 
+       }
 
 	  if(i == 0)
 	    {
 	      if(!RecoTwoETwoMuEvent)
 		{
 		  m1 = m;
+
+                  isFromH_L1 = isFromH; MomID_L1 = momID;
+
 		  idL1_GENMatched = mPdgId; pTL1_GENMatched = m.Pt(); 
 		  pXL1_GENMatched = m.Px(); pYL1_GENMatched = m.Py(); pZL1_GENMatched = m.Pz(); EL1_GENMatched = m.Energy(); 
 		  chargeL1_GENMatched = charge;
-		  etaL1_GENMatched = m.Eta(); phiL1_GENMatched = m.Phi();
+                  
 		  if(genZ1 != NULL)
 		    {
 		      EZ1_GENMatched = genZ1->Energy();  pTZ1_GENMatched = genZ1->Pt(); pXZ1_GENMatched = genZ1->Px(); 
@@ -5589,10 +6344,12 @@ void UFHZZ4LAna::setGENMatchedVariables(std::vector<pat::Muon> selectedMuons, st
 		}
 	      else{
 		m3 = m;
+
+                isFromH_L3 = isFromH; MomID_L3 = momID;
+
 		idL3_GENMatched = mPdgId; pTL3_GENMatched = m.Pt();
 		pXL3_GENMatched = m.Px(); pYL3_GENMatched = m.Py(); pZL3_GENMatched = m.Pz(); EL3_GENMatched = m.Energy();
 		chargeL3_GENMatched = charge; 
-		etaL3_GENMatched = m.Eta(); phiL3_GENMatched = m.Phi();
 		if(genZ1 != NULL)
 		  {
 		    EZ2_GENMatched = genZ1->Energy();  pTZ2_GENMatched = genZ1->Pt(); pXZ2_GENMatched = genZ1->Px();
@@ -5606,26 +6363,32 @@ void UFHZZ4LAna::setGENMatchedVariables(std::vector<pat::Muon> selectedMuons, st
 	      if(!RecoTwoETwoMuEvent)
 		{
 		  m2 = m;
+
+                  isFromH_L2 = isFromH; MomID_L2 = momID;
+
 		  idL2_GENMatched = mPdgId; pTL2_GENMatched = m.Pt(); 
 		  pXL2_GENMatched = m.Px(); pYL2_GENMatched = m.Py(); pZL2_GENMatched = m.Pz(); EL2_GENMatched = m.Energy(); 
 		  chargeL2_GENMatched = charge; 
-		  etaL2_GENMatched = m.Eta(); phiL2_GENMatched = m.Phi();
 		}
 	      else{
 		m4 = m;
+
+                isFromH_L4 = isFromH; MomID_L4 = momID;
+
 		idL4_GENMatched = mPdgId; pTL4_GENMatched = m.Pt();
 		pXL4_GENMatched = m.Px(); pYL4_GENMatched = m.Py(); pZL4_GENMatched = m.Pz(); EL4_GENMatched = m.Energy();
 		chargeL4_GENMatched = charge;
-		etaL4_GENMatched = m.Eta(); phiL4_GENMatched = m.Phi();
 	      }
 	    }
 	  if(i == 2)
 	    {
 	      m3 = m;
+
+              isFromH_L3 = isFromH; MomID_L3 = momID;
+
 	      idL3_GENMatched = mPdgId; pTL3_GENMatched = m.Pt(); 
 	      pXL3_GENMatched = m.Px(); pYL3_GENMatched = m.Py(); pZL3_GENMatched = m.Pz(); EL3_GENMatched = m.Energy(); 
-	      chargeL3_GENMatched = charge;
-	      etaL3_GENMatched = m.Eta(); phiL3_GENMatched = m.Phi();
+	      chargeL3_GENMatched = charge; 
 	      if(genZ1 != NULL)
 		{
 		  EZ2_GENMatched = genZ1->Energy();  pTZ2_GENMatched = genZ1->Pt(); pXZ2_GENMatched = genZ1->Px();
@@ -5635,46 +6398,111 @@ void UFHZZ4LAna::setGENMatchedVariables(std::vector<pat::Muon> selectedMuons, st
 	  if(i == 3)
 	    {
 	      m4 = m;
+
+              isFromH_L4 = isFromH; MomID_L4 = momID;
+
 	      idL4_GENMatched = mPdgId; pTL4_GENMatched = m.Pt(); 
 	      pXL4_GENMatched = m.Px(); pYL4_GENMatched = m.Py(); pZL4_GENMatched = m.Pz(); EL4_GENMatched = m.Energy(); 
 	      chargeL4_GENMatched = charge; 
-	      etaL4_GENMatched = m.Eta(); phiL4_GENMatched = m.Phi();
 	    }
-	  
-	}
     
     }
        
-      
-
   //Electrons
   for(unsigned int i = 0; i < selectedElectrons.size(); i++)
     {
+
+      bool isFromH = false;
+      double genZpx, genZpy, genZpz, genZE;
+      TLorentzVector m; int mPdgId=0;
+      TLorentzVector *genZ1 = new TLorentzVector();
+      int charge;
+
+      int momID = - 999999;
+
+     if (selectedElectrons[i].genParticleRefs().size()==0) {
+
+            // if no genParticleRef, try to find it manually                                                                                                            
+            double mindR = 999999.;
+            int ref = 999999;
+            for (unsigned int j=0; j<leptonsS1.size(); ++j) {
+          
+                if (fabs(leptonsS1[j].pdgId())!=11) continue;
+          
+                double dR = deltaR(leptonsS1[j].eta(), leptonsS1[j].phi(), selectedElectrons[i].eta(), selectedElectrons[i].phi());
+                if (dR<mindR) {
+                      mindR = dR;
+                      ref = j;
+                 }
+            }
+          
+            if (ref<999999) {
+
+                momID=genAna.MotherID(&leptonsS1.at(ref));
+                //mommomID=genAna.MotherMotherID(&leptonsS1.at(ref)); // you can comment this I added this function to HZZ4lGENAna.h
+
+                if(genAna.IsMotherZ(&leptonsS1.at(ref))) momID = 23;
+                if(genAna.IsMotherW(&leptonsS1.at(ref))) momID = 24;
+                if(genAna.IsMotherT(&leptonsS1.at(ref))) momID = 15;
+                
+                genAna.getStatusThree(&leptonsS1.at(ref),m,11,mPdgId);
+
+                genAna.getMotherZ(&leptonsS1.at(ref),genZpx,genZpy,genZpz,genZE);
+
+                isFromH = genAna.IsMotherH(&leptonsS1.at(ref));
+
+                genZ1->SetPxPyPzE(genZpx,genZpy,genZpz,genZE);
+
+                if(mPdgId > 0) charge = -1;
+                else charge = 1;
+
+                if(isFromH) break;
+
+            }
+    }
+
+
       for(unsigned int j = 0; j < selectedElectrons[i].genParticleRefs().size(); j++)
 	{
+          momID=genAna.MotherID(selectedElectrons[i].genParticle(j));
+
+          //cout<<"momID "<<momID<<endl;         
+
 	  if( selectedElectrons[i].genParticle(j)->status() != 1 ) continue;
 	  if( abs(selectedElectrons[i].genParticle(j)->pdgId()) != 11 ) continue;
-	  if( !genAna.IsMotherZ(selectedElectrons[i].genParticle(j)) ) continue;
+
+          if(genAna.IsMotherZ(selectedElectrons[i].genParticle(j))) momID = 23;
+          if(genAna.IsMotherW(selectedElectrons[i].genParticle(j))) momID = 24;
+          if(genAna.IsMotherT(selectedElectrons[i].genParticle(j))) momID = 15;
+
+	  //if( !genAna.IsMotherZ(selectedElectrons[i].genParticle(j)) ) continue;
 	  
-          double genZpx, genZpy, genZpz, genZE;
-	  TLorentzVector m; int mPdgId=0; 
-	  TLorentzVector *genZ1 = new TLorentzVector();
 	  genAna.getStatusThree(selectedElectrons[i].genParticle(j),m,11,mPdgId);
 	  genAna.getMotherZ(selectedElectrons[i].genParticle(j),genZpx,genZpy,genZpz,genZE);
           genZ1->SetPxPyPzE(genZpx,genZpy,genZpz,genZE);
-	  int charge;
+	  
 	  if(mPdgId > 0) charge = -1;
 	  else charge = 1;
+
+          isFromH = genAna.IsMotherH(selectedElectrons[i].genParticle(j)); 
+          if(isFromH) break;
+
+       } 
+
+       if(momID == - 999999) { cout<<"for "<<i<<"th electron, genParticleRefs().size() "<<selectedElectrons[i].genParticleRefs().size()<<endl;  }
 
 	  if(i == 0)
 	    {
 	      if(!RecoTwoMuTwoEEvent)
 		{
 		  m1 = m;
+
+                  isFromH_L1 = isFromH; MomID_L1 = momID; 
+
 		  idL1_GENMatched = mPdgId; pTL1_GENMatched = m.Pt(); 
 		  pXL1_GENMatched = m.Px(); pYL1_GENMatched = m.Py(); pZL1_GENMatched = m.Pz(); EL1_GENMatched = m.Energy(); 
 		  chargeL1_GENMatched = charge; 
-		  etaL1_GENMatched = m.Eta(); phiL1_GENMatched = m.Phi();
+                
 		  if(genZ1 != NULL)
 		    {
 		      EZ1_GENMatched = genZ1->Energy();  pTZ1_GENMatched = genZ1->Pt(); pXZ1_GENMatched = genZ1->Px(); 
@@ -5683,10 +6511,12 @@ void UFHZZ4LAna::setGENMatchedVariables(std::vector<pat::Muon> selectedMuons, st
 		}
 	      else {
 		m3 = m;
+
+                isFromH_L3 = isFromH; MomID_L3 = momID;
+
 		idL3_GENMatched = mPdgId; pTL3_GENMatched = m.Pt();
 		pXL3_GENMatched = m.Px(); pYL3_GENMatched = m.Py(); pZL3_GENMatched = m.Pz(); EL3_GENMatched = m.Energy();
 		chargeL3_GENMatched = charge; 
-		etaL3_GENMatched = m.Eta(); phiL3_GENMatched = m.Phi();
 		if(genZ1 != NULL)
 		  {
 		    EZ2_GENMatched = genZ1->Energy();  pTZ2_GENMatched = genZ1->Pt(); pXZ2_GENMatched = genZ1->Px();
@@ -5699,26 +6529,32 @@ void UFHZZ4LAna::setGENMatchedVariables(std::vector<pat::Muon> selectedMuons, st
 	      if(!RecoTwoMuTwoEEvent)
 		{
 		  m2 = m;
+
+                  isFromH_L2 = isFromH; MomID_L2 = momID;
+
 		  idL2_GENMatched = mPdgId; pTL2_GENMatched = m.Pt(); 
 		  pXL2_GENMatched = m.Px(); pYL2_GENMatched = m.Py(); pZL2_GENMatched = m.Pz(); EL2_GENMatched = m.Energy(); 
 		  chargeL2_GENMatched = charge; 
-		  etaL2_GENMatched = m.Eta(); phiL2_GENMatched = m.Phi();
 		}
 	      else{
 		m4 = m;
+
+                isFromH_L4 = isFromH; MomID_L4 = momID;
+
 		idL4_GENMatched = mPdgId; pTL4_GENMatched = m.Pt();
 		pXL4_GENMatched = m.Px(); pYL4_GENMatched = m.Py(); pZL4_GENMatched = m.Pz(); EL4_GENMatched = m.Energy();
 		chargeL4_GENMatched = charge; 
-		etaL4_GENMatched = m.Eta(); phiL4_GENMatched = m.Phi();
 	      }
 	    }
 	  if(i == 2)
 	    {
 	      m3 = m;
+
+              isFromH_L3 = isFromH; MomID_L3 = momID;
+
 	      idL3_GENMatched = mPdgId; pTL3_GENMatched = m.Pt(); 
 	      pXL3_GENMatched = m.Px(); pYL3_GENMatched = m.Py(); pZL3_GENMatched = m.Pz(); EL3_GENMatched = m.Energy(); 
 	      chargeL3_GENMatched = charge; 
-	      etaL3_GENMatched = m.Eta(); phiL3_GENMatched = m.Phi();
 	      if(genZ1 != NULL)
 		{
 		  EZ2_GENMatched = genZ1->Energy();  pTZ2_GENMatched = genZ1->Pt(); pXZ2_GENMatched = genZ1->Px();
@@ -5728,13 +6564,15 @@ void UFHZZ4LAna::setGENMatchedVariables(std::vector<pat::Muon> selectedMuons, st
 	  if(i == 3)
 	    {
 	      m4 = m;
+
+              isFromH_L4 = isFromH; MomID_L4 = momID;
+
 	      idL4_GENMatched = mPdgId; pTL4_GENMatched = m.Pt(); 
 	      pXL4_GENMatched = m.Px(); pYL4_GENMatched = m.Py(); pZL4_GENMatched = m.Pz(); EL4_GENMatched = m.Energy(); 
-	      chargeL4_GENMatched = charge;
-	      etaL4_GENMatched = m.Eta(); phiL4_GENMatched = m.Phi();
+	      chargeL4_GENMatched = charge; 
 	    }
 	  
-	}
+
     }
 
   m4l_GENMatched = (m1+m2+m3+m4).M();
@@ -5742,6 +6580,87 @@ void UFHZZ4LAna::setGENMatchedVariables(std::vector<pat::Muon> selectedMuons, st
 }	      
 
 
+bool UFHZZ4LAna::mZ1_mZ2(vector<TLorentzVector> v4L, vector<int> idL, vector<double> iso, int& L1, int& L2, int& L3, int& L4, bool isGenIsoCut)
+{
+
+    double offshell = 90.0; bool findZ1 = false; bool passZ1 = false;
+
+    L1 = 0; L2 = 0;
+
+    int N = v4L.size();
+
+    for(int i=0; i<N; i++){
+
+        if( abs(idL[i])==11 && (abs(v4L[i].Eta())>2.5 || v4L[i].Pt()<7) ) continue;
+        if( abs(idL[i])==13 && (abs(v4L[i].Eta())>2.4 || v4L[i].Pt()<5) ) continue;
+
+        for(int j=i+1; j<N; j++){
+
+            if( abs(idL[j])==11 && (abs(v4L[j].Eta())>2.5 || v4L[j].Pt()<7) ) continue;
+            if( abs(idL[j])==13 && (abs(v4L[j].Eta())>2.4 || v4L[j].Pt()<5) ) continue;
+
+            if((idL[i]+idL[j])!=0) continue;
+
+            if(abs((v4L[i]+v4L[j]).M()-91.2)<offshell){
+
+               double mZ1 = (v4L[i]+v4L[j]).M();
+
+               if(isGenIsoCut && iso[i]/v4L[i].Pt()<0.4 && iso[j]/v4L[j].Pt()<0.4 || !isGenIsoCut ) //if require iso cut, cut at 0.4
+                { L1 = i; L2 = j; findZ1 = true; offshell = abs(mZ1-91.2);}
+            }
+
+        }
+
+    }
+
+    if((v4L[L1]+v4L[L2]).M()>40 && (v4L[L1]+v4L[L2]).M()<120 && findZ1) passZ1 = true;
+
+    double pTL34 = 0; bool findZ2 = false;
+
+    if(passZ1 == true){
+
+    for(int i=0; i<N; i++){
+
+         if(i==L1 || i==L2) continue; // can not be the lep from Z1
+
+         if( abs(idL[i])==11 && (abs(v4L[i].Eta())>2.5 || v4L[i].Pt()<7) ) continue;
+         if( abs(idL[i])==13 && (abs(v4L[i].Eta())>2.4 || v4L[i].Pt()<5) ) continue;
+
+         for(int j=i+1; j<N; j++){
+
+            if(j==L1 || j==L2) continue; // can not be the lep from Z1
+            if( abs(idL[j])==11 && (abs(v4L[j].Eta())>2.5 || v4L[j].Pt()<7) ) continue;
+            if( abs(idL[j])==13 && (abs(v4L[j].Eta())>2.4 || v4L[j].Pt()<5) ) continue;
+
+            if((idL[i]+idL[j])!=0) continue;
+
+            if ( (v4L[i].Pt()+v4L[j].Pt())>=pTL34 ) { // choose high sum pT pair satisfy the following selection
+
+                   if((v4L[i]+v4L[j]).M()>12){
+
+                        if(isGenIsoCut && iso[i]/v4L[i].Pt()<0.4 && iso[j]/v4L[j].Pt()<0.4 || !isGenIsoCut ) 
+                         { L3 = i; L4 = j; findZ2 = true; pTL34 = v4L[i].Pt()+v4L[j].Pt();} // if require iso cut cut at 0.4
+                  }
+             }
+        }
+
+      }
+
+    }
+
+    int N_20 = 0; int N_10 = 0;
+
+    if(passZ1 && findZ2){
+
+     if(v4L[L1].Pt()>20) N_20 = N_20 + 1; if(v4L[L2].Pt()>20) N_20 = N_20 + 1; if(v4L[L3].Pt()>20) N_20 = N_20 + 1; if(v4L[L4].Pt()>20) N_20 = N_20 + 1;
+     if(v4L[L1].Pt()>10) N_10 = N_10 + 1; if(v4L[L2].Pt()>10) N_10 = N_10 + 1; if(v4L[L3].Pt()>10) N_10 = N_10 + 1; if(v4L[L4].Pt()>10) N_10 = N_10 + 1;
+
+    }
+    if(N_20>=1 && N_10>=2) return true;
+    else return false;
+
+
+}
 
 
 

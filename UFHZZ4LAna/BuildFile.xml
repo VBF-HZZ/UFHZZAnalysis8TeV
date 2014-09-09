@@ -39,4 +39,6 @@
 <use   name="ZZMatrixElement/MEKD"/>
 <use   name="ZZMatrixElement/MEMCalculators"/>
 <use   name="CMGTools/External"/>
+<use   name="CondFormats/JetMETObjects"/>
 <flags EDM_PLUGIN="1"/>
+<flags user_cxxflags="-O0 -g"/>
